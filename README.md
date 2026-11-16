@@ -1,6 +1,6 @@
 # Hilal Prayer Times
 
-Desktop app for Windows and macOS: the five daily prayers with adhan, a Juma row on Fridays, countdowns, and an AI assistant for Islamic questions. English, Uyghur and Dutch.
+Desktop app for Windows and macOS: the five daily prayers with adhan, a Juma row on Fridays, countdowns, and an AI assistant for Islamic questions. Languages: English, Uyghur, Dutch, Turkish, German, Norwegian, French and Japanese.
 
 ## Run and build
 

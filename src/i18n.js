@@ -1,4 +1,4 @@
-// UI text for the three languages. English is the fallback for any missing key.
+// UI text. English, Dutch and Uyghur are here; the other languages are in src/lang/. English is the fallback for any missing key.
 const en = {
   dir: 'ltr',
   appName: 'Hilal Prayer Times',
@@ -423,7 +423,10 @@ const ug = {
   updDev: "ئەپ ئەسلى كودتىن ئىجرا بولۇۋاتقاندا يېڭىلاش تاقاق.",
 };
 
-const LANGS = { en, nl, ug };
+const LANGS = {
+  en, ug, nl,
+  tr: require('./lang/tr'), de: require('./lang/de'), no: require('./lang/no'), fr: require('./lang/fr'), ja: require('./lang/ja'),
+};
 
 function strings(lang) {
   return { ...en, ...(LANGS[lang] || {}) };
