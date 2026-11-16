@@ -1,0 +1,78 @@
+{
+  "name": "hilal-prayer-times",
+  "productName": "Hilal Prayer Times",
+  "version": "1.1.0",
+  "description": "Muslim prayer times with adhan, Juma reminder and an AI assistant",
+  "author": "Hilal",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "icons": "electron scripts/make-icons.js",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "keyblock": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-keyblock.ps1"
+  },
+  "build": {
+    "appId": "com.hilal.prayertimes",
+    "productName": "Hilal Prayer Times",
+    "files": [
+      "main.js",
+      "family.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "extraResources": [
+        {
+          "from": "build/keyblock.exe",
+          "to": "keyblock.exe"
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "artifactName": "Hilal-Prayer-Times-Setup-${version}.exe"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "public.app-category.lifestyle",
+      "identity": "-"
+    },
+    "dmg": {
+      "artifactName": "Hilal-Prayer-Times-${version}.dmg"
+    }
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "adhan": "^4.4.6"
+  },
+  "devDependencies": {
+    "electron": "^45.3.3",
+    "electron-builder": "^26.18.0"
+  }
+}

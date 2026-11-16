@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'">
+  <title>Hilal Prayer Times</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="lock">
+  <div class="lock-box">
+    <img class="lock-logo" src="../assets/logo.svg" alt="">
+    <div class="lock-title" id="title"></div>
+    <div class="lock-sub" id="sub"></div>
+    <div class="lock-left" id="leftLabel"></div>
+    <div class="lock-count" id="count" dir="ltr">--:--</div>
+
+    <button type="button" class="ghost" id="parentBtn"></button>
+
+    <!-- The keyboard is blocked during the lock, so the PIN is entered with the mouse. -->
+    <div class="pad" id="pad" hidden>
+      <div class="pad-label" id="padLabel"></div>
+      <div class="pad-dots" id="dots" dir="ltr"></div>
+      <div class="pad-msg" id="msg"></div>
+      <div class="pad-keys" id="keys" dir="ltr"></div>
+      <div class="btns pad-actions">
+        <button type="button" class="ghost" id="padCancel"></button>
+        <button type="button" class="primary" id="padOk"></button>
+      </div>
+    </div>
+  </div>
+  <script src="lock.js"></script>
+</body>
+</html>

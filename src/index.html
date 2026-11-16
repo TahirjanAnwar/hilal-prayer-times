@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' file:; connect-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hilal Prayer Times</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <img class="logo" src="../assets/logo.svg" alt="">
+    <div class="top-text">
+      <div class="app-name" data-i18n="appName"></div>
+      <button class="loc-btn" id="locBtn" type="button"><span id="locLabel"></span></button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner" hidden>
+    <span id="bannerText"></span>
+    <button type="button" id="bannerStop" data-i18n="stopAdhan"></button>
+  </div>
+
+  <main>
+    <!-- Prayer times -->
+    <section class="view" id="view-times">
+      <div class="hero">
+        <div class="hero-label" data-i18n="nextPrayer"></div>
+        <div class="hero-name" id="heroName">—</div>
+        <div class="hero-count" id="heroCount" dir="ltr">--:--:--</div>
+        <div class="hero-time" id="heroTime" dir="ltr"></div>
+      </div>
+      <div class="rows" id="rows"></div>
+      <div class="foot">
+        <div id="dateGreg"></div>
+        <div id="dateHijri"></div>
+        <div id="qibla"></div>
+      </div>
+    </section>
+
+    <!-- AI assistant -->
+    <section class="view" id="view-ai" hidden>
+      <div class="chat" id="chat"></div>
+      <div class="chat-note" data-i18n="aiDisclaimer"></div>
+      <form class="chat-form" id="chatForm">
+        <button type="button" class="ghost" id="newChat" data-i18n="newChat"></button>
+        <textarea id="chatInput" rows="1" data-i18n-ph="aiPlaceholder"></textarea>
+        <button type="submit" class="primary" id="chatSend" data-i18n="send"></button>
+      </form>
+    </section>
+
+    <!-- Settings -->
+    <section class="view" id="view-settings" hidden>
+      <div class="card">
+        <h2 data-i18n="location"></h2>
+        <div class="line"><span class="muted" data-i18n="current"></span><span id="setLoc"></span></div>
+        <button type="button" class="ghost wide" id="autoLoc" data-i18n="detectAuto"></button>
+        <form class="search" id="citySearch">
+          <input type="text" id="cityInput" data-i18n-ph="searchCity">
+          <button type="submit" class="primary" data-i18n="search"></button>
+        </form>
+        <div class="results" id="cityResults"></div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="language"></h2>
+        <select id="language">
+          <option value="en">English</option>
+          <option value="ug">ئۇيغۇرچە</option>
+          <option value="nl">Nederlands</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="adhanSection"></h2>
+        <label class="line"><span data-i18n="playAdhan"></span><input type="checkbox" id="adhanEnabled"></label>
+        <label class="line"><span data-i18n="volume"></span><input type="range" id="volume" min="0" max="1" step="0.05"></label>
+        <label class="line"><span data-i18n="adhanFile"></span><select id="adhanChoice"></select></label>
+        <div class="btns">
+          <button type="button" class="ghost" id="pickAdhan" data-i18n="chooseFile"></button>
+          <button type="button" class="ghost" id="testAdhan" data-i18n="test"></button>
+        </div>
+        <div class="line"><span data-i18n="fajrAdhan"></span><button type="button" class="ghost" id="testFajr" data-i18n="test"></button></div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="calculation"></h2>
+        <label class="line"><span data-i18n="method"></span><select id="method"></select></label>
+        <label class="line"><span data-i18n="asrMethod"></span>
+          <select id="madhab">
+            <option value="standard" data-i18n="asrStandard"></option>
+            <option value="hanafi" data-i18n="asrHanafi"></option>
+          </select>
+        </label>
+        <label class="line"><span data-i18n="jumaTime"></span><input type="time" id="jumaTime"></label>
+        <label class="line"><span data-i18n="timeFormat"></span>
+          <select id="hour12">
+            <option value="24" data-i18n="h24"></option>
+            <option value="12" data-i18n="h12"></option>
+          </select>
+        </label>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="general"></h2>
+        <label class="line"><span data-i18n="startup"></span><input type="checkbox" id="startup"></label>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="familySection"></h2>
+        <div id="famNone">
+          <p class="muted small" data-i18n="familyIntro"></p>
+          <div class="btns">
+            <button type="button" class="ghost" id="famParent" data-i18n="roleParentBtn"></button>
+            <button type="button" class="ghost" id="famChild" data-i18n="roleChildBtn"></button>
+          </div>
+          <p class="muted small" id="famWinOnly" data-i18n="childWinOnly"></p>
+          <form class="stack" id="famSetup" hidden>
+            <strong id="famSetupRole"></strong>
+            <input type="password" inputmode="numeric" id="famPin1" data-i18n-ph="pinNew" dir="ltr" autocomplete="off">
+            <input type="password" inputmode="numeric" id="famPin2" data-i18n-ph="pinAgain" dir="ltr" autocomplete="off">
+            <p class="small err" id="famSetupMsg"></p>
+            <div class="btns">
+              <button type="button" class="ghost" id="famSetupCancel" data-i18n="cancel"></button>
+              <button type="submit" class="primary" data-i18n="save"></button>
+            </div>
+          </form>
+        </div>
+        <div id="famParentBox" hidden>
+          <div data-i18n="roleIsParent"></div>
+          <p class="muted small" data-i18n="firewallNote"></p>
+          <p class="small err" id="famLinkErr"></p>
+          <button type="button" class="ghost wide fam-off" data-i18n="familyOff"></button>
+        </div>
+        <div id="famChildBox" hidden>
+          <div id="famChildIs"></div>
+          <p class="muted small" id="famParentSeen"></p>
+          <button type="button" class="ghost wide" id="famTest" data-i18n="testLock"></button>
+          <button type="button" class="ghost wide" id="famTm"></button>
+          <p class="muted small" id="famTmHelp"></p>
+          <button type="button" class="ghost wide" id="famQuit" data-i18n="quitApp"></button>
+          <button type="button" class="ghost wide fam-off" data-i18n="familyOff"></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="aiSection"></h2>
+        <div class="line"><span data-i18n="apiKey"></span><span class="muted" id="keyStatus"></span></div>
+        <form class="search" id="keyForm">
+          <input type="password" id="keyInput" autocomplete="off" placeholder="sk-ant-…" dir="ltr">
+          <button type="submit" class="primary" data-i18n="save"></button>
+        </form>
+        <button type="button" class="ghost wide" id="keyRemove" data-i18n="remove"></button>
+        <p class="muted small" data-i18n="apiKeyHelp"></p>
+      </div>
+      <p class="muted small center" id="version"></p>
+    </section>
+
+    <!-- Family panel (parent's computer) -->
+    <section class="view" id="view-family" hidden>
+      <div class="card">
+        <h2 data-i18n="children"></h2>
+        <div id="kidList"></div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="lockSettings"></h2>
+        <label class="line"><span data-i18n="lockMinutes"></span><input type="number" id="lockMinutes" min="1" max="120" step="1" dir="ltr"></label>
+        <div id="lockFor"></div>
+      </div>
+      <div class="card">
+        <div class="line"><h2 data-i18n="alerts"></h2><button type="button" class="ghost" id="alertsClear" data-i18n="clear"></button></div>
+        <div id="alertList"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="pinModal" hidden>
+    <form class="card stack" id="pinForm">
+      <h2 data-i18n="pinEnter"></h2>
+      <p class="muted small" id="pinWhy"></p>
+      <input type="password" inputmode="numeric" id="pinInput" dir="ltr" autocomplete="off">
+      <p class="small err" id="pinMsg"></p>
+      <div class="btns">
+        <button type="button" class="ghost" id="pinCancel" data-i18n="cancel"></button>
+        <button type="submit" class="primary" data-i18n="unlock"></button>
+      </div>
+    </form>
+  </div>
+
+  <nav class="tabs">
+    <button type="button" class="tab active" data-view="times" data-i18n="tabTimes"></button>
+    <button type="button" class="tab" data-view="ai" data-i18n="tabAi"></button>
+    <button type="button" class="tab" data-view="family" data-i18n="tabFamily" hidden></button>
+    <button type="button" class="tab" data-view="settings" data-i18n="tabSettings"></button>
+  </nav>
+
+  <audio id="adhan" preload="none"></audio>
+  <script src="renderer.js"></script>
+</body>
+</html>

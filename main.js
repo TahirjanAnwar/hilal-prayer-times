@@ -1,0 +1,479 @@
+const { app, BrowserWindow, Tray, Menu, ipcMain, Notification, dialog, nativeImage, safeStorage, shell } = require('electron');
+const path = require('path');
+const fs = require('fs');
+const { pathToFileURL } = require('url');
+const Anthropic = require('@anthropic-ai/sdk');
+const prayer = require('./src/prayer');
+const i18n = require('./src/i18n');
+const family = require('./family');
+
+const START_HIDDEN = process.argv.includes('--hidden');
+const ADHAN_IDS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'juma'];
+
+// Let the adhan play without a click, even when the window is hidden.
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
+
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+}
+
+let win = null;
+let tray = null;
+let quitting = false;
+let adhanPlaying = false;
+
+// ---------- settings ----------
+const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
+
+const DEFAULTS = {
+  language: null, // filled from the system language on first run
+  locationMode: 'auto', // 'auto' | 'manual'
+  location: null, // { city, country, countryCode, lat, lon, tz }
+  method: 'auto',
+  madhab: 'standard',
+  jumaTime: '13:30',
+  hour12: false,
+  adhanEnabled: true,
+  adhanFor: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true, juma: true },
+  volume: 0.8,
+  adhanChoice: 1, // built-in adhan 1-7 for every prayer except Fajr
+  adhanFile: null, // own file, used instead of the built-in choice
+  startup: true,
+  apiKeyEnc: null,
+  firstRunDone: false,
+};
+
+let settings = { ...DEFAULTS };
+
+function loadSettings() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(settingsFile(), 'utf8'));
+    settings = { ...DEFAULTS, ...raw, adhanFor: { ...DEFAULTS.adhanFor, ...(raw.adhanFor || {}) } };
+  } catch {
+    settings = { ...DEFAULTS };
+  }
+  if (!i18n.LANG_CODES.includes(settings.language)) {
+    const sys = (app.getLocale() || 'en').toLowerCase();
+    settings.language = sys.startsWith('nl') ? 'nl' : sys.startsWith('ug') ? 'ug' : 'en';
+  }
+}
+
+function saveSettings() {
+  try {
+    fs.mkdirSync(path.dirname(settingsFile()), { recursive: true });
+    fs.writeFileSync(settingsFile(), JSON.stringify(settings, null, 2));
+  } catch (e) {
+    console.error('Could not save settings', e);
+  }
+}
+
+// What the window is allowed to see (never the API key itself).
+function publicState() {
+  const { apiKeyEnc, familyEnc, ...rest } = settings;
+  return {
+    settings: {
+      ...rest,
+      hasApiKey: !!apiKeyEnc,
+      adhanUrl: adhanUrl(),
+      fajrAdhanUrl: pathToFileURL(path.join(__dirname, 'assets', 'fajr.mp3')).href,
+      adhanCount: ADHAN_COUNT,
+      adhanFileName: settings.adhanFile ? path.basename(settings.adhanFile) : null,
+    },
+    strings: i18n.strings(settings.language),
+    methods: prayer.METHODS,
+    resolvedMethod: settings.location
+      ? prayer.resolveMethod(settings.method, settings.location.countryCode) : null,
+    qibla: settings.location ? prayer.qibla(settings.location) : null,
+    version: app.getVersion(),
+    family: family.view(),
+  };
+}
+
+const ADHAN_COUNT = 7;
+
+// Fajr always uses its own adhan; this is the one for the other prayers.
+function adhanUrl() {
+  const custom = settings.adhanFile && fs.existsSync(settings.adhanFile) ? settings.adhanFile : null;
+  return pathToFileURL(custom || path.join(__dirname, 'assets', `adhan-${settings.adhanChoice}.mp3`)).href;
+}
+
+function applyStartup() {
+  if (!app.isPackaged) return; // don't register the development build
+  app.setLoginItemSettings({ openAtLogin: !!settings.startup || family.role() === 'child', args: ['--hidden'] });
+}
+
+function broadcast() {
+  if (win && !win.isDestroyed()) win.webContents.send('state:changed', publicState());
+  refreshTray();
+}
+
+// ---------- prayer times ----------
+function dayPlan(now = Date.now()) {
+  const loc = settings.location;
+  if (!loc) return null;
+  const tz = prayer.safeTz(loc.tz);
+  const today = prayer.cityDate(tz, new Date(now));
+  return {
+    tz,
+    dateKey: `${today.y}-${today.m}-${today.d}`,
+    yesterday: prayer.computeDay(loc, settings, prayer.addDays(today, -1)),
+    today: prayer.computeDay(loc, settings, today),
+    tomorrow: prayer.computeDay(loc, settings, prayer.addDays(today, 1)),
+  };
+}
+
+function nextPrayer(now = Date.now()) {
+  const plan = dayPlan(now);
+  if (!plan) return null;
+  const all = [...plan.today, ...plan.tomorrow].filter((e) => e.id !== 'sunrise');
+  const next = all.find((e) => e.time > now);
+  return next ? { ...next, tz: plan.tz } : null;
+}
+
+const fired = new Set();
+
+function tick() {
+  const now = Date.now();
+  const plan = dayPlan(now);
+  if (!plan) return;
+  family.tick(plan, now);
+  for (const e of [...plan.yesterday, ...plan.today]) {
+    if (!ADHAN_IDS.includes(e.id)) continue;
+    const key = `${e.id}:${e.time}`;
+    if (now >= e.time && now - e.time < 60000 && !fired.has(key)) {
+      fired.add(key);
+      if (fired.size > 50) fired.delete(fired.values().next().value);
+      announce(e.id);
+    }
+  }
+}
+
+function announce(id) {
+  const s = i18n.strings(settings.language);
+  const body = s.timeFor.replace('{p}', s[id]);
+  if (Notification.isSupported()) {
+    const n = new Notification({ title: s[id], body, silent: true, icon: iconPath() });
+    n.on('click', showWindow);
+    n.show();
+  }
+  const play = settings.adhanEnabled && settings.adhanFor[id] !== false;
+  if (win && !win.isDestroyed()) win.webContents.send('prayer:now', { id, play });
+}
+
+// ---------- location ----------
+async function getJson(url) {
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'PrayerTimesApp/1.0' } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// City-level location from the internet connection (no GPS permission needed).
+async function detectLocation() {
+  const sources = [
+    async () => {
+      const j = await getJson('https://ipwho.is/');
+      if (!j.success) throw new Error('lookup failed');
+      return { city: j.city, country: j.country, countryCode: j.country_code, lat: j.latitude, lon: j.longitude, tz: j.timezone && j.timezone.id };
+    },
+    async () => {
+      const j = await getJson('https://ipapi.co/json/');
+      if (j.error) throw new Error('lookup failed');
+      return { city: j.city, country: j.country_name, countryCode: j.country_code, lat: j.latitude, lon: j.longitude, tz: j.timezone };
+    },
+  ];
+  for (const source of sources) {
+    try {
+      const loc = await source();
+      if (Number.isFinite(loc.lat) && Number.isFinite(loc.lon)) {
+        loc.tz = loc.tz || Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return loc;
+      }
+    } catch { /* try the next source */ }
+  }
+  return null;
+}
+
+async function refreshAutoLocation() {
+  const loc = await detectLocation();
+  if (loc && settings.locationMode === 'auto') {
+    settings.location = loc;
+    saveSettings();
+    broadcast();
+  }
+  return !!loc;
+}
+
+async function searchCities(query) {
+  const q = String(query || '').trim().slice(0, 80);
+  if (q.length < 2) return [];
+  const lang = settings.language === 'nl' ? 'nl' : 'en';
+  const j = await getJson(`https://geocoding-api.open-meteo.com/v1/search?count=8&format=json&language=${lang}&name=${encodeURIComponent(q)}`);
+  return (j.results || []).map((r) => ({
+    city: r.name, region: r.admin1 || '', country: r.country || '', countryCode: r.country_code || '',
+    lat: r.latitude, lon: r.longitude, tz: r.timezone || 'UTC',
+  }));
+}
+
+// ---------- AI assistant ----------
+const AI_SYSTEM = `You are a knowledgeable, gentle assistant inside a Muslim prayer-times desktop app. People ask you about Islam: beliefs, worship, the Quran, hadith, the lives of the prophets and companions, history, and everyday practice.
+
+Accuracy matters more than anything else here, because people may act on what you say. Quote the Quran only when you are confident of the wording, and give the surah and ayah number. For hadith, name the collection (for example Sahih al-Bukhari or Sahih Muslim) and mention the grading when you know it; if you are not sure a narration is authentic or cannot recall its source, say so plainly instead of presenting it as established. Never invent a reference.
+
+Where the schools of law differ, say that they differ and summarise the main positions fairly instead of presenting one as the only view. For personal rulings that depend on someone's circumstances (divorce, inheritance, medical matters, finance), explain the general principles and recommend asking a qualified local scholar.
+
+Answer in the language the person writes in. The app is used in English, Uyghur (Arabic script) and Dutch. Write in plain text without Markdown symbols such as asterisks or pound signs, because the chat window shows text exactly as written. Keep answers focused; tell stories warmly and at a comfortable length. If asked about something unrelated to Islam, answer briefly and kindly.`;
+
+function getApiKey() {
+  if (!settings.apiKeyEnc) return null;
+  try {
+    const buf = Buffer.from(settings.apiKeyEnc.data, 'base64');
+    return settings.apiKeyEnc.enc ? safeStorage.decryptString(buf) : buf.toString('utf8');
+  } catch {
+    return null;
+  }
+}
+
+function setApiKey(key) {
+  const k = String(key || '').trim();
+  if (!k) {
+    settings.apiKeyEnc = null;
+  } else if (safeStorage.isEncryptionAvailable()) {
+    settings.apiKeyEnc = { enc: true, data: safeStorage.encryptString(k).toString('base64') };
+  } else {
+    settings.apiKeyEnc = { enc: false, data: Buffer.from(k, 'utf8').toString('base64') };
+  }
+  saveSettings();
+}
+
+const aiStreams = new Map();
+
+async function aiSend(event, { id, messages }) {
+  const s = i18n.strings(settings.language);
+  const apiKey = getApiKey();
+  if (!apiKey) return { ok: false, error: s.aiNeedKey };
+  const history = (Array.isArray(messages) ? messages : [])
+    .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+    .slice(-40)
+    .map((m) => ({ role: m.role, content: m.content }));
+  if (!history.length) return { ok: false, error: '' };
+
+  const client = new Anthropic({ apiKey });
+  try {
+    // If the main model declines a request, the API retries it on a fallback model.
+    const stream = client.beta.messages.stream({
+      model: 'claude-opus-5-5',
+      max_tokens: 32000,
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      system: AI_SYSTEM,
+      messages: history,
+    });
+    aiStreams.set(id, stream);
+    stream.on('text', (delta) => {
+      if (!event.sender.isDestroyed()) event.sender.send('ai:chunk', { id, text: delta });
+    });
+    const final = await stream.finalMessage();
+    if (final.stop_reason === 'refusal') return { ok: false, error: s.aiDeclined };
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof Anthropic.APIUserAbortError) return { ok: true, aborted: true };
+    if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) return { ok: false, error: s.aiBadKey };
+    if (err instanceof Anthropic.RateLimitError) return { ok: false, error: s.aiBusy };
+    if (err instanceof Anthropic.APIError && err.status >= 500) return { ok: false, error: s.aiBusy };
+    return { ok: false, error: s.aiError.replace('{e}', err && err.message ? err.message : String(err)) };
+  } finally {
+    aiStreams.delete(id);
+  }
+}
+
+// ---------- window & tray ----------
+function iconPath() {
+  return path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png');
+}
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 440,
+    height: 800,
+    minWidth: 380,
+    minHeight: 600,
+    show: false,
+    backgroundColor: '#0f2238',
+    autoHideMenuBar: true,
+    icon: iconPath(),
+    title: 'Hilal Prayer Times',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      backgroundThrottling: false, // keep timers and audio running while hidden
+    },
+  });
+  win.setMenu(null);
+  win.loadFile(path.join(__dirname, 'src', 'index.html'));
+  win.once('ready-to-show', () => { if (!START_HIDDEN) win.show(); });
+  win.on('hide', family.lockAdmin); // ask for the parent PIN again next time
+  win.on('session-end', family.markCleanExit);
+  win.on('close', (e) => {
+    if (!quitting) { e.preventDefault(); win.hide(); } // keep running in the tray
+  });
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https:\/\//.test(url)) shell.openExternal(url);
+    return { action: 'deny' };
+  });
+  win.webContents.on('will-navigate', (e) => e.preventDefault());
+}
+
+function showWindow() {
+  if (!win || win.isDestroyed()) return;
+  if (win.isMinimized()) win.restore();
+  win.show();
+  win.focus();
+}
+
+function fmtTime(ms, tz) {
+  return new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: !!settings.hour12 }).format(new Date(ms));
+}
+
+function refreshTray() {
+  if (!tray) return;
+  const s = i18n.strings(settings.language);
+  const next = nextPrayer();
+  const nextLabel = next ? `${s[next.id]}  ${fmtTime(next.time, next.tz)}` : s.noLocation;
+  tray.setToolTip(`${s.appName}\n${nextLabel}`);
+  const items = [
+    { label: nextLabel, enabled: false },
+    { type: 'separator' },
+    { label: s.open, click: showWindow },
+  ];
+  if (adhanPlaying) items.push({ label: s.stopAdhan, click: () => win && win.webContents.send('adhan:stop') });
+  items.push(
+    { label: s.playAdhan, type: 'checkbox', checked: !!settings.adhanEnabled, click: (item) => { settings.adhanEnabled = item.checked; saveSettings(); broadcast(); } },
+  );
+  // On a child's computer the app can only be closed from Settings, after the parent PIN.
+  if (family.role() !== 'child') items.push({ type: 'separator' }, { label: s.quit, click: () => { quitting = true; app.quit(); } });
+  tray.setContextMenu(Menu.buildFromTemplate(items));
+}
+
+function createTray() {
+  let img = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray.png'));
+  if (process.platform === 'darwin') img = img.resize({ width: 18, height: 18 });
+  tray = new Tray(img);
+  tray.on('click', showWindow);
+  refreshTray();
+}
+
+// ---------- IPC ----------
+function registerIpc() {
+  ipcMain.handle('state:get', () => publicState());
+  ipcMain.handle('times:get', () => {
+    const plan = dayPlan();
+    return plan ? { tz: plan.tz, dateKey: plan.dateKey, today: plan.today, tomorrow: plan.tomorrow } : null;
+  });
+
+  ipcMain.handle('settings:set', (_e, patch) => {
+    let p = patch || {};
+    if (family.guarded()) p = { adhanFor: p.adhanFor }; // without the PIN only the adhan bells can be changed
+    if (i18n.LANG_CODES.includes(p.language)) settings.language = p.language;
+    if (p.method === 'auto' || prayer.METHODS.includes(p.method)) settings.method = p.method;
+    if (p.madhab === 'standard' || p.madhab === 'hanafi') settings.madhab = p.madhab;
+    if (typeof p.jumaTime === 'string' && /^\d{1,2}:\d{2}$/.test(p.jumaTime)) settings.jumaTime = p.jumaTime;
+    if (typeof p.hour12 === 'boolean') settings.hour12 = p.hour12;
+    if (typeof p.adhanEnabled === 'boolean') settings.adhanEnabled = p.adhanEnabled;
+    if (Number.isInteger(p.adhanChoice) && p.adhanChoice >= 1 && p.adhanChoice <= ADHAN_COUNT) {
+      settings.adhanChoice = p.adhanChoice;
+      settings.adhanFile = null;
+    }
+    if (typeof p.volume === 'number') settings.volume = Math.min(1, Math.max(0, p.volume));
+    if (p.adhanFor && typeof p.adhanFor === 'object') {
+      for (const id of ADHAN_IDS) if (typeof p.adhanFor[id] === 'boolean') settings.adhanFor[id] = p.adhanFor[id];
+    }
+    if (typeof p.startup === 'boolean') { settings.startup = p.startup; applyStartup(); }
+    saveSettings();
+    broadcast();
+    return publicState();
+  });
+
+  ipcMain.handle('location:auto', async () => {
+    if (family.guarded()) return false;
+    settings.locationMode = 'auto';
+    saveSettings();
+    const ok = await refreshAutoLocation();
+    broadcast();
+    return ok;
+  });
+  ipcMain.handle('location:search', async (_e, q) => {
+    try { return await searchCities(q); } catch { return []; }
+  });
+  ipcMain.handle('location:set', (_e, loc) => {
+    if (family.guarded() || !loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lon)) return false;
+    settings.locationMode = 'manual';
+    settings.location = {
+      city: String(loc.city || ''), country: String(loc.country || ''), countryCode: String(loc.countryCode || ''),
+      lat: loc.lat, lon: loc.lon, tz: prayer.safeTz(String(loc.tz || 'UTC')),
+    };
+    saveSettings();
+    broadcast();
+    return true;
+  });
+
+  ipcMain.handle('adhan:pick', async () => {
+    if (family.guarded()) return publicState();
+    const r = await dialog.showOpenDialog(win, {
+      properties: ['openFile'],
+      filters: [{ name: 'Audio', extensions: ['mp3', 'ogg', 'oga', 'wav', 'm4a', 'aac', 'flac'] }],
+    });
+    if (!r.canceled && r.filePaths[0]) { settings.adhanFile = r.filePaths[0]; saveSettings(); broadcast(); }
+    return publicState();
+  });
+  ipcMain.on('adhan:state', (_e, playing) => { adhanPlaying = !!playing; refreshTray(); });
+
+  ipcMain.handle('ai:setKey', (_e, key) => { if (!family.guarded()) setApiKey(key); broadcast(); return publicState(); });
+  ipcMain.handle('ai:send', aiSend);
+  ipcMain.handle('family:setup', (_e, { role, pin } = {}) => family.setup(role, pin));
+  ipcMain.handle('family:auth', (_e, pin) => family.auth(pin));
+  ipcMain.handle('family:leave', () => family.leave());
+  ipcMain.handle('family:taskmgr', (_e, block) => family.setTaskMgrBlocked(!!block));
+  ipcMain.on('family:cfg', (_e, patch) => family.setCfg(patch));
+  ipcMain.on('family:unlock', (_e, id) => family.unlockChild(String(id)));
+  ipcMain.on('family:forget', (_e, id) => family.forgetChild(String(id)));
+  ipcMain.on('family:clearAlerts', () => family.clearAlerts());
+  ipcMain.on('family:testLock', () => family.testLock());
+  ipcMain.on('family:quit', () => { if (!family.guarded()) { quitting = true; app.quit(); } });
+  ipcMain.handle('lock:info', () => family.lockInfo());
+  ipcMain.handle('lock:pin', (_e, pin) => family.lockPin(pin));
+  ipcMain.on('ai:cancel', (_e, id) => { const st = aiStreams.get(id); if (st) st.abort(); });
+}
+
+// ---------- app lifecycle ----------
+// The watchdog task starts the app every minute with --watch; that must not pop up the window.
+app.on('second-instance', (_e, argv) => { if (!argv.includes('--watch')) showWindow(); });
+app.on('before-quit', () => { quitting = true; family.markCleanExit(); });
+app.on('window-all-closed', () => { /* stay alive in the tray */ });
+app.on('activate', showWindow);
+
+app.whenReady().then(async () => {
+  if (process.platform === 'win32') app.setAppUserModelId('com.hilal.prayertimes');
+  loadSettings();
+  if (!settings.firstRunDone) {
+    settings.firstRunDone = true;
+    saveSettings();
+  }
+  family.init({
+    settings: () => settings,
+    save: saveSettings,
+    strings: () => i18n.strings(settings.language),
+    iconPath,
+    preload: path.join(__dirname, 'preload.js'),
+    showWindow,
+    changed: (view) => { if (win && !win.isDestroyed()) win.webContents.send('family:state', view); },
+    roleChanged: () => { applyStartup(); broadcast(); },
+  });
+  applyStartup();
+  registerIpc();
+  createWindow();
+  createTray();
+  setInterval(tick, 1000);
+  setInterval(refreshTray, 60000);
+  if (settings.locationMode === 'auto') refreshAutoLocation();
+});

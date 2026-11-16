@@ -1,0 +1,36 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+const on = (channel) => (cb) => {
+  ipcRenderer.on(channel, (_e, data) => cb(data));
+};
+
+contextBridge.exposeInMainWorld('api', {
+  getState: () => ipcRenderer.invoke('state:get'),
+  getTimes: () => ipcRenderer.invoke('times:get'),
+  setSettings: (patch) => ipcRenderer.invoke('settings:set', patch),
+  locateAuto: () => ipcRenderer.invoke('location:auto'),
+  searchCities: (q) => ipcRenderer.invoke('location:search', q),
+  setLocation: (loc) => ipcRenderer.invoke('location:set', loc),
+  pickAdhan: () => ipcRenderer.invoke('adhan:pick'),
+  adhanState: (playing) => ipcRenderer.send('adhan:state', playing),
+  setApiKey: (key) => ipcRenderer.invoke('ai:setKey', key),
+  aiSend: (payload) => ipcRenderer.invoke('ai:send', payload),
+  aiCancel: (id) => ipcRenderer.send('ai:cancel', id),
+  familySetup: (role, pin) => ipcRenderer.invoke('family:setup', { role, pin }),
+  familyAuth: (pin) => ipcRenderer.invoke('family:auth', pin),
+  familyLeave: () => ipcRenderer.invoke('family:leave'),
+  familyTaskMgr: (block) => ipcRenderer.invoke('family:taskmgr', block),
+  familyCfg: (patch) => ipcRenderer.send('family:cfg', patch),
+  familyUnlock: (id) => ipcRenderer.send('family:unlock', id),
+  familyForget: (id) => ipcRenderer.send('family:forget', id),
+  familyClearAlerts: () => ipcRenderer.send('family:clearAlerts'),
+  familyTestLock: () => ipcRenderer.send('family:testLock'),
+  familyQuit: () => ipcRenderer.send('family:quit'),
+  lockInfo: () => ipcRenderer.invoke('lock:info'),
+  lockPin: (pin) => ipcRenderer.invoke('lock:pin', pin),
+  onFamily: on('family:state'),
+  onState: on('state:changed'),
+  onPrayer: on('prayer:now'),
+  onAdhanStop: on('adhan:stop'),
+  onAiChunk: on('ai:chunk'),
+});
