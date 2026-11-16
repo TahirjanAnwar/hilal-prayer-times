@@ -402,6 +402,11 @@ function syncWidget() {
   w.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 }
 
+function removeWidget() {
+  if (widget && !widget.isDestroyed()) widget.destroy();
+  widget = null;
+}
+
 // The widget page reports how tall its card is; the window follows, staying on screen.
 function setWidgetHeight(h) {
   if (!widget || widget.isDestroyed() || !Number.isFinite(h)) return;
@@ -543,7 +548,13 @@ function registerIpc() {
     const r = await updater.run((p) => { if (!e.sender.isDestroyed()) e.sender.send('update:progress', p); });
     if (r.status === 'ready') {
       // Restart into the downloaded files, with the same options as this run.
-      setTimeout(() => { quitting = true; app.relaunch({ args: process.argv.slice(1).filter((a) => a !== '--hidden') }); app.quit(); }, 1200);
+      setTimeout(() => {
+        quitting = true;
+        family.markCleanExit();
+        removeWidget();
+        app.relaunch({ args: process.argv.slice(1).filter((a) => a !== '--hidden') });
+        app.exit(0); // exit rather than quit: nothing may hold the restart back
+      }, 1200);
     }
     return r;
   });
@@ -556,7 +567,7 @@ function registerIpc() {
 // ---------- app lifecycle ----------
 // The watchdog task starts the app every minute with --watch; that must not pop up the window.
 app.on('second-instance', (_e, argv) => { if (!argv.includes('--watch')) showWindow(); });
-app.on('before-quit', () => { quitting = true; family.markCleanExit(); });
+app.on('before-quit', () => { quitting = true; family.markCleanExit(); removeWidget(); });
 app.on('window-all-closed', () => { /* stay alive in the tray */ });
 app.on('activate', showWindow);
 
