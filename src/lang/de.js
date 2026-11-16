@@ -157,4 +157,9 @@ module.exports = {
   childName: "Name des Kindes",
   widgetShow: "Widget auf dem Desktop anzeigen",
   widgetTop: "Widget über anderen Fenstern halten",
+  widgetHadith: "Einen Hadith und ein Bittgebet im Widget zeigen",
+  hadithRefresh: "Neuer Hadith",
+  everyHour: "Jede Stunde",
+  everyNHours: "Alle {n} Stunden",
+  everyDay: "Einmal am Tag",
 };

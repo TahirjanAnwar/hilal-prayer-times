@@ -164,6 +164,11 @@ const en = {
   childName: "Child's name",
   widgetShow: "Show the widget on the desktop",
   widgetTop: "Keep the widget above other windows",
+  widgetHadith: "Show a hadith and a dua on the widget",
+  hadithRefresh: "New hadith",
+  everyHour: "Every hour",
+  everyNHours: "Every {n} hours",
+  everyDay: "Once a day",
 };
 
 const nl = {
@@ -326,6 +331,11 @@ const nl = {
   childName: "Naam van het kind",
   widgetShow: "Widget op het bureaublad tonen",
   widgetTop: "Widget boven andere vensters houden",
+  widgetHadith: "Een hadith en een dua op de widget tonen",
+  hadithRefresh: "Nieuwe hadith",
+  everyHour: "Elk uur",
+  everyNHours: "Elke {n} uur",
+  everyDay: "Eén keer per dag",
 };
 
 const ug = {
@@ -488,6 +498,11 @@ const ug = {
   childName: "بالىنىڭ ئىسمى",
   widgetShow: "ئۈستەل يۈزىدە كىچىك كۆزنەكنى كۆرسىتىش",
   widgetTop: "كىچىك كۆزنەكنى باشقا كۆزنەكلەرنىڭ ئۈستىدە تۇتۇش",
+  widgetHadith: "كىچىك كۆزنەكتە ھەدىس ۋە دۇئا كۆرسىتىش",
+  hadithRefresh: "يېڭى ھەدىس",
+  everyHour: "ھەر سائەتتە",
+  everyNHours: "ھەر {n} سائەتتە",
+  everyDay: "كۈندە بىر قېتىم",
 };
 
 const LANGS = {

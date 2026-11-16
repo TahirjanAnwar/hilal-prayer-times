@@ -1,13 +1,15 @@
-/* global api */
-// Desktop widget: the next prayer and a countdown to it.
+/* global api, WISDOM */
+// Desktop widget: the next prayer with a countdown, and below it a hadith and a short dua
+// that change once a day (or as often as chosen in Settings).
 const $ = (id) => document.getElementById(id);
 const pad = (n) => String(n).padStart(2, '0');
 
 let state = null;
 let times = null;
+let shownSlot = null;
+let lastHeight = 0;
 
-function render() {
-  if (!state) return;
+function renderPrayer() {
   const S = state.strings;
   $('label').textContent = S.nextPrayer;
   const now = Date.now();
@@ -25,6 +27,41 @@ function render() {
   }).format(new Date(next.time));
   const s = Math.max(0, Math.ceil((next.time - now) / 1000));
   $('count').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+}
+
+// Which hadith and dua to show now. The slot number grows by one every refresh period,
+// counted in local time, so "once a day" changes at midnight.
+function renderWisdom() {
+  const on = state.settings.widgetHadith;
+  $('wisdom').hidden = !on;
+  if (!on) { shownSlot = null; return; }
+  const period = (state.settings.hadithHours || 24) * 3600000;
+  const slot = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / period);
+  const key = `${slot}|${state.settings.language}|${state.family.role}`;
+  if (key === shownSlot) return;
+  shownSlot = key;
+
+  const L = WISDOM.lang[state.settings.language] || WISDOM.lang.en;
+  // On a child's computer only the hadiths chosen for children are shown.
+  let pool = WISDOM.hadiths.map((h, i) => ({ ...h, i }));
+  if (state.family.role === 'child') pool = pool.filter((h) => h.kids);
+  const h = pool[slot % pool.length];
+  $('hadith').textContent = L.hadiths[h.i];
+  $('hadithSrc').textContent = [h.src.includes('b') ? L.b : null, h.src.includes('m') ? L.m : null].filter(Boolean).join(' · ');
+
+  const d = slot % WISDOM.duas.length;
+  $('duaAr').textContent = WISDOM.duas[d].ar;
+  $('dua').textContent = L.duas[d];
+  $('duaSrc').textContent = `${L.quran} ${WISDOM.duas[d].ref}`;
+}
+
+function render() {
+  if (!state) return;
+  renderPrayer();
+  renderWisdom();
+  // The window follows the height of the card, so longer texts are never cut off.
+  const h = Math.ceil($('card').getBoundingClientRect().height) + 12;
+  if (h !== lastHeight) { lastHeight = h; api.widgetSize(h); }
 }
 
 async function load() {

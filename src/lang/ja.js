@@ -157,4 +157,9 @@ module.exports = {
   childName: "子どもの名前",
   widgetShow: "デスクトップにウィジェットを表示",
   widgetTop: "ウィジェットを他のウィンドウより前に表示",
+  widgetHadith: "ウィジェットにハディースとドゥアーを表示",
+  hadithRefresh: "新しいハディース",
+  everyHour: "1時間ごと",
+  everyNHours: "{n}時間ごと",
+  everyDay: "1日1回",
 };

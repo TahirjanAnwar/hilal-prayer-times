@@ -157,4 +157,9 @@ module.exports = {
   childName: "Çocuğun adı",
   widgetShow: "Masaüstünde küçük pencereyi göster",
   widgetTop: "Küçük pencereyi diğer pencerelerin üstünde tut",
+  widgetHadith: "Küçük pencerede hadis ve dua göster",
+  hadithRefresh: "Yeni hadis",
+  everyHour: "Her saat",
+  everyNHours: "Her {n} saatte bir",
+  everyDay: "Günde bir kez",
 };

@@ -44,6 +44,8 @@ const DEFAULTS = {
   widget: true, // small always-there window on the desktop with the next prayer
   widgetTop: false, // keep the widget above other windows
   widgetPos: null, // { x, y } after the user dragged it
+  widgetHadith: true, // show a hadith and a dua on the widget
+  hadithHours: 24, // how often they change: 1, 3, 6, 12 or 24 hours
   apiKeyEnc: null,
   firstRunDone: false,
 };
@@ -332,8 +334,9 @@ function createWindow() {
 }
 
 // ---------- desktop widget ----------
-const WIDGET_W = 300;
-const WIDGET_H = 84;
+const WIDGET_W = 350;
+const WIDGET_H = 96; // before the page reports its real height
+let widgetH = WIDGET_H;
 
 function widgetPosition() {
   const p = settings.widgetPos;
@@ -365,6 +368,7 @@ function syncWidget() {
     height: WIDGET_H,
     frame: false,
     transparent: true,
+    backgroundColor: '#00000000',
     resizable: false,
     minimizable: false,
     maximizable: false,
@@ -396,6 +400,16 @@ function syncWidget() {
   });
   w.webContents.on('will-navigate', (e) => e.preventDefault());
   w.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+}
+
+// The widget page reports how tall its card is; the window follows, staying on screen.
+function setWidgetHeight(h) {
+  if (!widget || widget.isDestroyed() || !Number.isFinite(h)) return;
+  widgetH = Math.min(520, Math.max(70, Math.round(h)));
+  const [x, y] = widget.getPosition();
+  const a = screen.getDisplayMatching({ x, y, width: WIDGET_W, height: widgetH }).workArea;
+  const top = Math.max(a.y, Math.min(y, a.y + a.height - widgetH - 8));
+  widget.setBounds({ x, y: top, width: WIDGET_W, height: widgetH });
 }
 
 function showWindow() {
@@ -465,6 +479,8 @@ function registerIpc() {
     if (typeof p.startup === 'boolean') { settings.startup = p.startup; applyStartup(); }
     if (typeof p.widget === 'boolean') settings.widget = p.widget;
     if (typeof p.widgetTop === 'boolean') settings.widgetTop = p.widgetTop;
+    if (typeof p.widgetHadith === 'boolean') settings.widgetHadith = p.widgetHadith;
+    if ([1, 3, 6, 12, 24].includes(p.hadithHours)) settings.hadithHours = p.hadithHours;
     if ('widget' in p || 'widgetTop' in p) syncWidget();
     saveSettings();
     broadcast();
@@ -521,6 +537,7 @@ function registerIpc() {
   ipcMain.on('family:testLock', () => family.testLock());
   ipcMain.on('family:quit', () => { if (!family.guarded()) { quitting = true; app.quit(); } });
   ipcMain.on('window:show', showWindow);
+  ipcMain.on('widget:size', (e, h) => { if (widget && !widget.isDestroyed() && e.sender === widget.webContents) setWidgetHeight(h); });
   ipcMain.handle('update:run', async (e) => {
     if (family.guarded()) return { status: 'error', error: '' };
     const r = await updater.run((p) => { if (!e.sender.isDestroyed()) e.sender.send('update:progress', p); });

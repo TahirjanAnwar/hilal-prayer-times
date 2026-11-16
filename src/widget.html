@@ -8,14 +8,28 @@
 </head>
 <body class="widget">
   <!-- The whole card can be dragged; the logo is a button that opens the app. -->
-  <div class="w-card">
-    <button type="button" class="w-logo" id="open"><img src="../assets/logo.svg" alt=""></button>
-    <div class="w-text">
-      <div class="w-label"><span id="label"></span> · <span id="clock" dir="ltr"></span></div>
-      <div class="w-name" id="name">—</div>
+  <div class="w-card" id="card">
+    <div class="w-top">
+      <button type="button" class="w-logo" id="open"><img src="../assets/logo.svg" alt=""></button>
+      <div class="w-text">
+        <div class="w-label"><span id="label"></span> · <span id="clock" dir="ltr"></span></div>
+        <div class="w-name" id="name">—</div>
+      </div>
+      <div class="w-count" id="count" dir="ltr">--:--:--</div>
     </div>
-    <div class="w-count" id="count" dir="ltr">--:--:--</div>
+    <div class="w-wisdom" id="wisdom" hidden>
+      <div class="w-block">
+        <div class="w-hadith" id="hadith"></div>
+        <div class="w-src" id="hadithSrc"></div>
+      </div>
+      <div class="w-block">
+        <div class="w-dua-ar" id="duaAr" dir="rtl" lang="ar"></div>
+        <div class="w-dua" id="dua"></div>
+        <div class="w-src" id="duaSrc"></div>
+      </div>
+    </div>
   </div>
+  <script src="wisdom.js"></script>
   <script src="widget.js"></script>
 </body>
 </html>

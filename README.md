@@ -41,6 +41,15 @@ The installers are not code-signed. Windows SmartScreen shows "Windows protected
 
 A small window on the desktop shows the next prayer and a countdown (`src/widget.html`). It can be dragged anywhere and remembers its place. It has no close button and refuses Alt+F4; it is switched off under Settings → General, which on a child's computer needs the parent PIN. By default it sits on the desktop behind other windows; "Keep the widget above other windows" changes that.
 
+### Hadith and dua on the widget
+
+Below the countdown the widget shows a hadith and a short dua (`src/wisdom.js`), changing once a day or every 1, 3, 6 or 12 hours (Settings → General).
+
+- Hadiths: only from Sahih al-Bukhari and Sahih Muslim, given as the meaning in simple words, with the collection named. On a child's computer only the ones marked for children are shown (parents, helping at home, manners).
+- Duas: verses of the Quran, with the Arabic text and the verse number.
+- The translations were written for this app and have not been reviewed by a scholar. Corrections are welcome.
+- The glass look is a see-through grey tint; Windows 10 cannot blur what is behind a window.
+
 ## Updates
 
 Settings → Updates → **Update** downloads the current app files from the `main` branch of this repository (`updater.js`), checks each file against the checksum GitHub lists for it, and restarts into them. Only changed files are downloaded. The downloaded copy lives in the user's app-data folder; `boot.js` starts it instead of the installed copy and falls back to the installed copy if it fails to start twice.

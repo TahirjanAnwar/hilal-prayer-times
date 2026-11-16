@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('api', {
   updatePage: () => ipcRenderer.send('update:page'),
   onUpdateProgress: on('update:progress'),
   showMain: () => ipcRenderer.send('window:show'),
+  widgetSize: (height) => ipcRenderer.send('widget:size', height),
   onFamily: on('family:state'),
   onState: on('state:changed'),
   onPrayer: on('prayer:now'),

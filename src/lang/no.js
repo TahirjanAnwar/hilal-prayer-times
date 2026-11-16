@@ -157,4 +157,9 @@ module.exports = {
   childName: "Barnets navn",
   widgetShow: "Vis widgeten på skrivebordet",
   widgetTop: "Hold widgeten over andre vinduer",
+  widgetHadith: "Vis en hadith og en dua på widgeten",
+  hadithRefresh: "Ny hadith",
+  everyHour: "Hver time",
+  everyNHours: "Hver {n}. time",
+  everyDay: "Én gang om dagen",
 };

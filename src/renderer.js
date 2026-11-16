@@ -245,6 +245,11 @@ function fillSettings() {
   $('widget').checked = s.widget;
   $('widgetTop').checked = s.widgetTop;
   $('widgetTop').disabled = !s.widget;
+  $('widgetHadith').checked = s.widgetHadith;
+  $('widgetHadith').disabled = !s.widget;
+  $('hadithHours').replaceChildren(...[1, 3, 6, 12, 24].map((n) => new Option(n === 1 ? t('everyHour') : n === 24 ? t('everyDay') : t('everyNHours', { n }), String(n))));
+  $('hadithHours').value = String(s.hadithHours);
+  $('hadithHours').disabled = !s.widget || !s.widgetHadith;
   $('keyStatus').textContent = s.hasApiKey ? t('apiKeySaved') : t('apiKeyMissing');
   $('keyRemove').hidden = !s.hasApiKey;
   $('version').textContent = `v${state.version}`;
@@ -264,6 +269,8 @@ $('hour12').addEventListener('change', (e) => save({ hour12: e.target.value === 
 $('startup').addEventListener('change', (e) => save({ startup: e.target.checked }));
 $('widget').addEventListener('change', (e) => save({ widget: e.target.checked }));
 $('widgetTop').addEventListener('change', (e) => save({ widgetTop: e.target.checked }));
+$('widgetHadith').addEventListener('change', (e) => save({ widgetHadith: e.target.checked }));
+$('hadithHours').addEventListener('change', (e) => save({ hadithHours: Number(e.target.value) }));
 $('pickAdhan').addEventListener('click', async () => { stopAdhan(); setState(await api.pickAdhan()); });
 $('adhanChoice').addEventListener('change', (e) => {
   stopAdhan();
