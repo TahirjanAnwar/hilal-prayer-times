@@ -2,6 +2,10 @@
 
 Desktop app for Windows and macOS: the five daily prayers with adhan, a Juma row on Fridays, countdowns, and an AI assistant for Islamic questions. Languages: English, Uyghur, Dutch, Turkish, German, Norwegian, French and Japanese.
 
+## Download
+
+Windows: get the latest `Hilal-Prayer-Times-Setup-<version>.exe` from the [Releases page](https://github.com/TahirjanAnwar/hilal-prayer-times/releases/latest) and run it. After that, new versions arrive through Settings → Updates inside the app.
+
 ## Run and build
 
 ```bash
