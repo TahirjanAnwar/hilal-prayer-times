@@ -47,6 +47,7 @@ async function submit() {
   document.documentElement.dir = S.dir;
   $('title').textContent = info.test ? S.lockTest : S.timeFor.replace('{p}', S[info.prayer] || '');
   $('sub').textContent = S.lockSub;
+  $('reward').textContent = info.test ? '' : S.rewardLock.replace('{n}', info.per);
   $('leftLabel').textContent = S.lockLeft;
   $('parentBtn').textContent = S.lockParent;
   $('padLabel').textContent = S.pinEnter;

@@ -432,13 +432,16 @@ function registerIpc() {
 
   ipcMain.handle('ai:setKey', (_e, key) => { if (!family.guarded()) setApiKey(key); broadcast(); return publicState(); });
   ipcMain.handle('ai:send', aiSend);
-  ipcMain.handle('family:setup', (_e, { role, pin } = {}) => family.setup(role, pin));
+  ipcMain.handle('family:setup', (_e, { role, pin, name } = {}) => family.setup(role, pin, name));
+  ipcMain.on('family:name', (_e, name) => family.setChildName(name));
   ipcMain.handle('family:auth', (_e, pin) => family.auth(pin));
   ipcMain.handle('family:leave', () => family.leave());
   ipcMain.handle('family:taskmgr', (_e, block) => family.setTaskMgrBlocked(!!block));
   ipcMain.on('family:cfg', (_e, patch) => family.setCfg(patch));
   ipcMain.on('family:unlock', (_e, id) => family.unlockChild(String(id)));
   ipcMain.on('family:forget', (_e, id) => family.forgetChild(String(id)));
+  ipcMain.on('family:confirmPrayer', (_e, { id, prayed } = {}) => family.confirmPrayer(String(id), !!prayed));
+  ipcMain.on('family:addPrayer', (_e, id) => family.addPrayer(String(id)));
   ipcMain.on('family:clearAlerts', () => family.clearAlerts());
   ipcMain.on('family:testLock', () => family.testLock());
   ipcMain.on('family:quit', () => { if (!family.guarded()) { quitting = true; app.quit(); } });

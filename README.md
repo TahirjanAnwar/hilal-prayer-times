@@ -52,6 +52,15 @@ Set up in Settings → Family. One computer is the parent's, the others are chil
 - Link: each child broadcasts a signed status message over UDP port 47815 every 3 seconds and the parent answers it. Nothing leaves the home network. The parent's computer must allow the app through Windows Firewall.
 - Limits: a child who signs in with an administrator account, or who deletes the app's settings folder, can get around the lock; the parent then sees that computer as offline. Give children a standard Windows account.
 
+## Reward score
+
+Part of family mode, meant to encourage children to pray.
+
+- 15 minutes before each prayer that locks, a child's computer shows a reminder ("Allah's reward is waiting for you").
+- Each prayer lock creates a record. The parent answers "Prayed" or "Not prayed" in the Family tab; the app cannot see whether a child prayed. "+ Prayer" adds one that was prayed while the computer was off.
+- A confirmed prayer adds 10 to that child's score. The number comes from Quran 6:160 (a good deed is rewarded with ten like it) and is shown as "at least 10 hasanat"; the app does not claim to know the full reward. No text gives a fixed total for one prayer.
+- The scoreboard (Family tab, also visible on the children's computers) shows this week's score and the total. The weekly score starts again every Monday and last week's winner is shown; the total never goes down.
+
 ## Adhan sounds
 
 Fajr always plays `assets/fajr.mp3`. The other prayers play one of `assets/adhan-1.mp3` to `adhan-7.mp3`, chosen in Settings (or your own audio file). The recordings were supplied by the app owner.

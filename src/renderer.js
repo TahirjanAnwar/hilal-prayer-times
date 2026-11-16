@@ -465,9 +465,10 @@ function note(text) {
 
 function renderFamily() {
   const f = state.family;
-  document.querySelector('.tab[data-view="family"]').hidden = f.role !== 'parent';
+  document.querySelector('.tab[data-view="family"]').hidden = f.role === 'none';
+  document.querySelectorAll('.parent-only').forEach((el) => { el.hidden = f.role !== 'parent'; });
   // The PIN is asked again after the window was closed, so leave protected screens.
-  const needsPin = (currentView === 'family' && (f.role !== 'parent' || !f.adminOk))
+  const needsPin = (currentView === 'family' && (f.role === 'none' || (f.role === 'parent' && !f.adminOk)))
     || (currentView === 'settings' && f.role === 'child' && !f.adminOk);
   if (needsPin && $('pinModal').hidden) showView('times', true);
 
@@ -479,10 +480,40 @@ function renderFamily() {
   $('famWinOnly').hidden = f.isWin;
   $('famLinkErr').textContent = f.linkError ? t('linkProblem', { e: f.linkError }) : '';
   $('famChildIs').textContent = t('roleIsChild', { n: f.name });
+  if (document.activeElement !== $('famNameEdit')) $('famNameEdit').value = f.name;
   $('famParentSeen').textContent = t(f.parentSeen ? 'parentSeen' : 'parentNotSeen');
   $('famTm').textContent = t(f.taskMgrOff ? 'tmUnblock' : 'tmBlock');
   $('famTmHelp').textContent = t('tmHelp', { s: t(f.taskMgrOff ? 'tmOff' : 'tmOn') });
+  renderScores(f);
   if (f.role !== 'parent') return;
+
+  // Prayers waiting for the parent's answer
+  $('pendingList').replaceChildren(...(!f.pending.length ? [note(t('noPending'))] : f.pending.map((p) => {
+    const row = document.createElement('div');
+    row.className = 'kid';
+    const text = document.createElement('div');
+    text.className = 'kid-text';
+    const name = document.createElement('strong');
+    name.textContent = `${p.name} · ${t(p.prayer)}`;
+    const when = document.createElement('small');
+    when.textContent = fmtWhen(p.ts);
+    text.append(name, when);
+    const yes = document.createElement('button');
+    yes.type = 'button';
+    yes.className = 'primary';
+    yes.textContent = t('prayedYes');
+    yes.addEventListener('click', () => api.familyConfirmPrayer(p.id, true));
+    const no = document.createElement('button');
+    no.type = 'button';
+    no.className = 'ghost';
+    no.textContent = t('prayedNo');
+    no.addEventListener('click', () => api.familyConfirmPrayer(p.id, false));
+    const btns = document.createElement('div');
+    btns.className = 'kid-btns';
+    btns.append(no, yes);
+    row.append(text, btns);
+    return row;
+  })));
 
   // Family panel: children's computers
   $('kidList').replaceChildren(...(!f.children.length ? [note(t('noChildren'))] : f.children.map((c) => {
@@ -549,15 +580,53 @@ function renderFamily() {
   })));
 }
 
+// The hasanat scoreboard, shown on the parent's and on every child's computer.
+function renderScores(f) {
+  const b = f.board;
+  const rows = b ? b.rows : [];
+  const top = rows.length && rows[0].week > 0 ? rows[0].week : -1;
+  const head = document.createElement('div');
+  head.className = 'score head';
+  for (const text of ['', t('scoreWeek'), t('scoreTotal')]) {
+    const c = document.createElement('span');
+    c.textContent = text;
+    head.append(c);
+  }
+  $('scoreList').replaceChildren(...(!rows.length ? [note(t('noScores'))] : [head, ...rows.map((r) => {
+    const row = document.createElement('div');
+    row.className = 'score' + (r.week === top ? ' lead' : '') + (r.id === f.myId ? ' me' : '');
+    const name = document.createElement('strong');
+    name.textContent = (r.week === top ? '★ ' : '') + r.name;
+    const week = document.createElement('span');
+    week.textContent = r.week;
+    const total = document.createElement('span');
+    total.textContent = r.total;
+    row.append(name, week, total);
+    if (f.role === 'parent') {
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'ghost';
+      add.textContent = t('addPrayer');
+      add.title = t('addPrayerHelp');
+      add.addEventListener('click', () => api.familyAddPrayer(r.id));
+      row.append(add);
+    }
+    return row;
+  })]));
+  $('scoreWinner').textContent = b && b.lastWinner ? t('lastWinner', { n: b.lastWinner.names.join(', '), p: b.lastWinner.points }) : '';
+}
+
 let setupRole = null;
 function openSetup(role) {
   setupRole = role;
   $('famSetup').hidden = !role;
   $('famSetupRole').textContent = role ? t(role === 'parent' ? 'roleParentBtn' : 'roleChildBtn') : '';
   $('famSetupMsg').textContent = '';
+  $('famName').hidden = role !== 'child';
+  $('famName').value = '';
   $('famPin1').value = '';
   $('famPin2').value = '';
-  if (role) $('famPin1').focus();
+  if (role) $(role === 'child' ? 'famName' : 'famPin1').focus();
 }
 $('famParent').addEventListener('click', () => openSetup('parent'));
 $('famChild').addEventListener('click', () => openSetup('child'));
@@ -567,13 +636,14 @@ $('famSetup').addEventListener('submit', async (e) => {
   const a = $('famPin1').value;
   if (!/^\d{4,12}$/.test(a)) { $('famSetupMsg').textContent = t('pinBad'); return; }
   if (a !== $('famPin2').value) { $('famSetupMsg').textContent = t('pinMismatch'); return; }
-  const r = await api.familySetup(setupRole, a);
+  const r = await api.familySetup(setupRole, a, $('famName').value);
   if (!r.ok) { $('famSetupMsg').textContent = t(r.error); return; }
   openSetup(null);
 });
 document.querySelectorAll('.fam-off').forEach((b) => b.addEventListener('click', async () => {
   if (await askPin(t('pinEnter'))) await api.familyLeave();
 }));
+$('famRename').addEventListener('submit', (e) => { e.preventDefault(); api.familyName($('famNameEdit').value); $('famNameEdit').blur(); });
 $('famTest').addEventListener('click', () => api.familyTestLock());
 $('famTm').addEventListener('click', async () => {
   $('famTm').disabled = true;
@@ -593,7 +663,7 @@ api.onFamily((f) => { if (state) { state.family = f; renderFamily(); } });
 async function showView(name, force) {
   const f = state.family;
   if (!force && name === 'settings' && f.role === 'child' && !(await askPin(t('gateChild')))) return;
-  if (!force && name === 'family' && !(await askPin(t('gateParent')))) return;
+  if (!force && name === 'family' && f.role === 'parent' && !(await askPin(t('gateParent')))) return;
   currentView = name;
   for (const v of ['times', 'ai', 'family', 'settings']) $(`view-${v}`).hidden = v !== name;
   document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.view === name));

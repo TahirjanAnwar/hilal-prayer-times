@@ -129,6 +129,7 @@
           <p class="muted small" id="famWinOnly" data-i18n="childWinOnly"></p>
           <form class="stack" id="famSetup" hidden>
             <strong id="famSetupRole"></strong>
+            <input type="text" id="famName" maxlength="30" data-i18n-ph="childName">
             <input type="password" inputmode="numeric" id="famPin1" data-i18n-ph="pinNew" dir="ltr" autocomplete="off">
             <input type="password" inputmode="numeric" id="famPin2" data-i18n-ph="pinAgain" dir="ltr" autocomplete="off">
             <p class="small err" id="famSetupMsg"></p>
@@ -147,6 +148,10 @@
         <div id="famChildBox" hidden>
           <div id="famChildIs"></div>
           <p class="muted small" id="famParentSeen"></p>
+          <form class="search" id="famRename">
+            <input type="text" id="famNameEdit" maxlength="30" data-i18n-ph="childName">
+            <button type="submit" class="ghost" data-i18n="save"></button>
+          </form>
           <button type="button" class="ghost wide" id="famTest" data-i18n="testLock"></button>
           <button type="button" class="ghost wide" id="famTm"></button>
           <p class="muted small" id="famTmHelp"></p>
@@ -171,15 +176,25 @@
     <!-- Family panel (parent's computer) -->
     <section class="view" id="view-family" hidden>
       <div class="card">
+        <h2 data-i18n="scoreboard"></h2>
+        <div id="scoreList"></div>
+        <p class="muted small" id="scoreWinner"></p>
+        <p class="muted small" data-i18n="scoreNote"></p>
+      </div>
+      <div class="card parent-only">
+        <h2 data-i18n="toConfirm"></h2>
+        <div id="pendingList"></div>
+      </div>
+      <div class="card parent-only">
         <h2 data-i18n="children"></h2>
         <div id="kidList"></div>
       </div>
-      <div class="card">
+      <div class="card parent-only">
         <h2 data-i18n="lockSettings"></h2>
         <label class="line"><span data-i18n="lockMinutes"></span><input type="number" id="lockMinutes" min="1" max="120" step="1" dir="ltr"></label>
         <div id="lockFor"></div>
       </div>
-      <div class="card">
+      <div class="card parent-only">
         <div class="line"><h2 data-i18n="alerts"></h2><button type="button" class="ghost" id="alertsClear" data-i18n="clear"></button></div>
         <div id="alertList"></div>
       </div>

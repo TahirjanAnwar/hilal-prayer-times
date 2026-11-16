@@ -21,14 +21,23 @@ const ADMIN_MS = 10 * 60000;
 const WATCH_TASK = 'Hilal Prayer Times Watch';
 const TM_KEY = 'Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System';
 const IS_WIN = process.platform === 'win32';
+// Reward score. "Whoever brings a good deed will have ten like it" (Quran 6:160), so a confirmed
+// prayer counts as at least ten hasanat. The app never claims to know the full reward.
+const HASANAT_PER_PRAYER = 10;
+const REMIND_MS = 15 * 60000;
 
 const defaultCfg = () => ({ rev: 0, lockMinutes: 15, lockFor: Object.fromEntries(LOCK_IDS.map((id) => [id, true])) });
 const fresh = () => ({
   role: 'none', // 'none' | 'parent' | 'child'
   deviceId: crypto.randomBytes(8).toString('hex'),
   key: null, // hex, made from the PIN
+  childName: '', // child: the name shown on the scoreboard
   cfg: defaultCfg(),
-  children: {}, // parent: id -> { name, lastSeen }
+  children: {}, // parent: id -> { name, lastSeen, total, week, weekKey, last, lastKey }
+  pending: [], // parent: prayers waiting for the parent's confirmation { id, childId, prayer, ts }
+  doneIds: [], // parent: prayer records already confirmed or rejected
+  board: null, // child: the scoreboard as last sent by the parent
+  myTotal: null, // child: own total at the last sync, to notice new hasanat
   alerts: [], // parent: { id, ts, childId, name, type }
   events: [], // child: not yet delivered to the parent
   lockUntil: 0,
@@ -59,10 +68,13 @@ let aliveTimer = null;
 let tmTimer = null;
 let tmOpen = false;
 let taskMgrOff = false;
+const reminded = new Set();
 
 const softLock = () => !app.isPackaged && !!process.env.HILAL_SOFT_LOCK; // small test window instead of full screen
 const isLocked = () => fam.lockUntil > Date.now();
 const isAdmin = () => adminUntil > Date.now();
+const myName = () => fam.childName || os.hostname();
+const cleanName = (n) => String(n || '').replace(/\s+/g, ' ').trim().slice(0, 30);
 const deriveKey = (pin) => crypto.scryptSync(String(pin), LINK_SALT, 32).toString('hex');
 
 // ---------- storage (kept encrypted inside settings.json) ----------
@@ -94,6 +106,48 @@ function sanitizeCfg(c) {
   return out;
 }
 
+// ---------- reward score (kept on the parent's computer) ----------
+// Weeks run Monday to Sunday. The weekly score starts again each week; the total only grows.
+function weekKey(ms = Date.now()) {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function rollWeeks() {
+  const cur = weekKey();
+  let dirty = false;
+  for (const c of Object.values(fam.children)) {
+    if (c.weekKey === cur) continue;
+    if (c.weekKey) { c.last = c.week || 0; c.lastKey = c.weekKey; }
+    c.week = 0;
+    c.weekKey = cur;
+    c.total = c.total || 0;
+    dirty = true;
+  }
+  return dirty;
+}
+
+function addPoints(childId, n) {
+  const c = fam.children[childId];
+  if (!c) return;
+  rollWeeks();
+  c.total = (c.total || 0) + n;
+  c.week = (c.week || 0) + n;
+}
+
+function scoreboard() {
+  if (fam.role !== 'parent') return fam.board;
+  if (rollWeeks()) persist();
+  const prev = weekKey(Date.now() - 7 * 86400000);
+  const rows = Object.entries(fam.children).map(([id, c]) => ({ id, name: c.name, week: c.week || 0, total: c.total || 0 }))
+    .sort((a, b) => b.week - a.week || b.total - a.total || a.name.localeCompare(b.name));
+  const best = Math.max(0, ...Object.values(fam.children).map((c) => (c.lastKey === prev ? c.last || 0 : 0)));
+  const winners = best > 0 ? Object.values(fam.children).filter((c) => c.lastKey === prev && c.last === best).map((c) => c.name) : [];
+  return { rows, lastWinner: winners.length ? { names: winners, points: best } : null, per: HASANAT_PER_PRAYER };
+}
+
 // ---------- what the window sees ----------
 function view() {
   const now = Date.now();
@@ -101,7 +155,7 @@ function view() {
     role: fam.role,
     isWin: IS_WIN,
     adminOk: isAdmin(),
-    name: os.hostname(),
+    name: myName(),
     cfg: fam.cfg,
     children: Object.entries(fam.children).map(([id, c]) => {
       const live = liveKids.get(id);
@@ -115,6 +169,9 @@ function view() {
       };
     }),
     alerts: fam.alerts,
+    pending: fam.pending.map((p) => ({ ...p, name: (fam.children[p.childId] || {}).name || '?' })),
+    board: scoreboard(),
+    myId: fam.deviceId,
     locked: isLocked(),
     parentSeen: now - lastParentSeen < ONLINE_MS + 3000,
     taskMgrOff,
@@ -210,12 +267,21 @@ function onChildBeacon(buf, rinfo) {
   let dirty = false;
   const known = fam.children[b.id];
   if (!known || known.name !== name) dirty = true;
-  fam.children[b.id] = { name, lastSeen: now };
+  fam.children[b.id] = { ...known, name, lastSeen: now };
 
   const ack = [];
   for (const ev of Array.isArray(b.events) ? b.events.slice(0, 20) : []) {
     if (!ev || typeof ev.id !== 'string') continue;
     ack.push(ev.id);
+    if (ev.type === 'prayer') {
+      // A lock ran on that computer; the parent decides whether the prayer was prayed.
+      if (LOCK_IDS.includes(ev.prayer) && !fam.doneIds.includes(ev.id) && !fam.pending.some((p) => p.id === ev.id)) {
+        fam.pending.push({ id: ev.id, childId: b.id, prayer: ev.prayer, ts: Number(ev.ts) || now });
+        fam.pending = fam.pending.slice(-200);
+        dirty = true;
+      }
+      continue;
+    }
     if (fam.alerts.some((a) => a.id === ev.id)) continue;
     const alert = { id: ev.id, ts: Number(ev.ts) || now, childId: b.id, name, type: String(ev.type) };
     fam.alerts.unshift(alert);
@@ -226,7 +292,7 @@ function onChildBeacon(buf, rinfo) {
   if (!b.locked) pending.delete(b.id);
   if (dirty) persist();
 
-  const reply = seal({ t: 'a', id: b.id, nonce: b.nonce, ack, cfg: fam.cfg, cmd: pending.get(b.id) || null });
+  const reply = seal({ t: 'a', id: b.id, nonce: b.nonce, ack, cfg: fam.cfg, cmd: pending.get(b.id) || null, board: scoreboard() });
   if (sock) sock.send(reply, rinfo.port, rinfo.address, () => {});
   changed();
 }
@@ -274,7 +340,7 @@ function beat() {
   nonces = nonces.slice(-10);
   const now = Date.now();
   const msg = seal({
-    t: 'b', id: fam.deviceId, name: os.hostname(), seq: now, nonce,
+    t: 'b', id: fam.deviceId, name: myName(), seq: now, nonce,
     locked: isLocked(), left: Math.max(0, fam.lockUntil - now), prayer: fam.lockPrayer,
     events: fam.events.slice(0, 20),
   });
@@ -297,13 +363,46 @@ function onParentAnswer(buf, rinfo) {
   }
   const cfg = sanitizeCfg(a.cfg);
   if (cfg && cfg.rev > fam.cfg.rev) { fam.cfg = cfg; dirty = true; }
+  const board = cleanBoard(a.board);
+  if (board && JSON.stringify(board) !== JSON.stringify(fam.board)) {
+    fam.board = board;
+    dirty = true;
+    const mine = board.rows.find((r) => r.id === fam.deviceId);
+    if (mine) {
+      const gained = fam.myTotal == null ? 0 : mine.total - fam.myTotal;
+      fam.myTotal = mine.total;
+      if (gained > 0) say('rewardWonTitle', 'rewardWonBody', { n: gained });
+    }
+  }
   if (dirty) persist();
   if (a.cmd && a.cmd.type === 'unlock' && isLocked()) endLock('parent');
   else if (dirty || !wasSeen) changed();
 }
 
-function addEvent(type, ts = Date.now()) {
-  fam.events.push({ id: crypto.randomBytes(8).toString('hex'), ts, type });
+function cleanBoard(b) {
+  if (!b || !Array.isArray(b.rows)) return null;
+  const num = (x) => (Number.isFinite(x) && x >= 0 ? Math.round(x) : 0);
+  const w = b.lastWinner;
+  return {
+    rows: b.rows.slice(0, 30).map((r) => ({ id: String(r.id), name: String(r.name).slice(0, 60), week: num(r.week), total: num(r.total) })),
+    lastWinner: w && Array.isArray(w.names) ? { names: w.names.slice(0, 30).map((n) => String(n).slice(0, 60)), points: num(w.points) } : null,
+    per: num(b.per) || HASANAT_PER_PRAYER,
+  };
+}
+
+// A notification in the app's language. Keys are text names from src/i18n.js.
+function say(titleKey, bodyKey, vars = {}) {
+  if (!Notification.isSupported()) return;
+  const s = ctx.strings();
+  const fill = (text) => Object.entries(vars).reduce((t, [k, v]) => t.replace(`{${k}}`, v), text || '');
+  if (!app.isPackaged) console.log('NOTIFY', fill(s[titleKey]), '|', fill(s[bodyKey]));
+  const n = new Notification({ title: fill(s[titleKey]), body: fill(s[bodyKey]), icon: ctx.iconPath() });
+  n.on('click', ctx.showWindow);
+  n.show();
+}
+
+function addEvent(type, ts = Date.now(), extra = {}) {
+  fam.events.push({ id: crypto.randomBytes(8).toString('hex'), ts, type, ...extra });
   fam.events = fam.events.slice(-50);
   persist();
   beat();
@@ -315,6 +414,7 @@ function startLock(until, prayer, key) {
   fam.lockPrayer = prayer;
   fam.lockKey = key;
   persist();
+  if (prayer) addEvent('prayer', Date.now(), { prayer }); // the parent confirms it later for the reward score
   showLock();
   beat();
   changed();
@@ -381,6 +481,7 @@ function startBlocker() {
 }
 
 function endLock(reason) {
+  const prayed = fam.lockPrayer;
   if (fam.lockKey) fam.clearedKey = fam.lockKey;
   fam.lockUntil = 0;
   fam.lockPrayer = null;
@@ -395,6 +496,7 @@ function endLock(reason) {
   if (reason === 'pin') addEvent('pinunlock'); else persist();
   beat();
   changed();
+  if (prayed && fam.role === 'child') say('rewardBackTitle', 'rewardBackBody', { p: ctx.strings()[prayed], n: (fam.board && fam.board.per) || HASANAT_PER_PRAYER });
 }
 
 function lockInfo() {
@@ -406,7 +508,8 @@ function lockInfo() {
     test: !fam.lockPrayer,
     lang: ctx.settings().language,
     wait: Math.max(0, Math.ceil((pinBlockedUntil - Date.now()) / 1000)),
-    strings: pick(['dir', 'appName', 'timeFor', 'lockSub', 'lockLeft', 'lockParent', 'lockTest', 'pinEnter', 'pinWrong', 'pinWait', 'unlock', 'cancel', ...LOCK_IDS]),
+    per: (fam.board && fam.board.per) || HASANAT_PER_PRAYER,
+    strings: pick(['dir', 'appName', 'timeFor', 'lockSub', 'rewardLock', 'lockLeft', 'lockParent', 'lockTest', 'pinEnter', 'pinWrong', 'pinWait', 'unlock', 'cancel', ...LOCK_IDS]),
   };
 }
 
@@ -419,7 +522,16 @@ function lockPin(pin) {
 
 // Called every second by the app with today's prayer plan.
 function tick(plan, now) {
-  if (fam.role !== 'child' || isLocked()) return;
+  if (fam.role !== 'child') return;
+  // A reminder a quarter of an hour before each prayer that locks.
+  for (const e of [...plan.today, ...plan.tomorrow]) {
+    const key = `${e.id}:${e.time}`;
+    if (!fam.cfg.lockFor[e.id] || e.time <= now || e.time - now > REMIND_MS || reminded.has(key)) continue;
+    reminded.add(key);
+    if (reminded.size > 40) reminded.delete(reminded.values().next().value);
+    say('rewardSoonTitle', 'rewardSoonBody', { p: ctx.strings()[e.id], m: Math.max(1, Math.round((e.time - now) / 60000)) });
+  }
+  if (isLocked()) return;
   const span = fam.cfg.lockMinutes * 60000;
   for (const e of [...plan.yesterday, ...plan.today]) {
     if (!fam.cfg.lockFor[e.id] || now < e.time || now >= e.time + span) continue;
@@ -546,12 +658,13 @@ function stopRole() {
   tmTimer = null;
 }
 
-function setup(role, pin) {
+function setup(role, pin, name) {
   if (fam.role !== 'none') return { ok: false, error: 'pinWrong' };
   if (role !== 'parent' && !(role === 'child' && IS_WIN)) return { ok: false, error: 'childWinOnly' };
   if (typeof pin !== 'string' || !/^\d{4,12}$/.test(pin)) return { ok: false, error: 'pinBad' };
   fam.key = deriveKey(pin);
   fam.role = role;
+  fam.childName = role === 'child' ? cleanName(name) : '';
   fam.cfg = defaultCfg();
   if (role === 'parent') fam.cfg.rev = Date.now();
   persist();
@@ -596,8 +709,29 @@ function unlockChild(id) {
 function forgetChild(id) {
   if (fam.role !== 'parent' || !isAdmin()) return;
   delete fam.children[id];
+  fam.pending = fam.pending.filter((p) => p.childId !== id);
   liveKids.delete(id);
   pending.delete(id);
+  persist();
+  changed();
+}
+
+// The parent says whether a child prayed; a confirmed prayer adds to that child's score.
+function confirmPrayer(recordId, prayed) {
+  if (fam.role !== 'parent' || !isAdmin()) return;
+  const rec = fam.pending.find((p) => p.id === recordId);
+  if (!rec) return;
+  fam.pending = fam.pending.filter((p) => p !== rec);
+  fam.doneIds = [...fam.doneIds, rec.id].slice(-300);
+  if (prayed) addPoints(rec.childId, HASANAT_PER_PRAYER);
+  persist();
+  changed();
+}
+
+// For a prayer prayed while the computer was off (at school, at the mosque).
+function addPrayer(childId) {
+  if (fam.role !== 'parent' || !isAdmin() || !fam.children[childId]) return;
+  addPoints(childId, HASANAT_PER_PRAYER);
   persist();
   changed();
 }
@@ -606,6 +740,14 @@ function clearAlerts() {
   if (fam.role !== 'parent' || !isAdmin()) return;
   fam.alerts = [];
   persist();
+  changed();
+}
+
+function setChildName(name) {
+  if (fam.role !== 'child' || !isAdmin()) return;
+  fam.childName = cleanName(name);
+  persist();
+  beat();
   changed();
 }
 
@@ -624,7 +766,7 @@ function init(context) {
 
 module.exports = {
   init, view, tick, auth, lockAdmin, setup, leave, setCfg, unlockChild, forgetChild, clearAlerts,
-  testLock, setTaskMgrBlocked, lockInfo, lockPin, markCleanExit,
+  testLock, setTaskMgrBlocked, confirmPrayer, addPrayer, setChildName, lockInfo, lockPin, markCleanExit,
   role: () => fam.role,
   isLocked,
   // A child's computer needs the parent PIN before settings can be changed.
