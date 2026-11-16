@@ -64,6 +64,12 @@ async function run(onProgress = () => {}) {
       if ((pkg.shell || 1) > shell.version) return { status: 'installer', version: pkg.version };
       version = pkg.version;
       fetched.set('package.json', buf);
+      // The installer stores a trimmed package.json, so that file alone differing is not an update.
+      if (changed.length === 1) {
+        let mine = {};
+        try { mine = JSON.parse(fs.readFileSync(local('package.json'), 'utf8')); } catch { /* treat as changed */ }
+        if (mine.version === pkg.version && (mine.shell || 1) === (pkg.shell || 1)) return { status: 'latest' };
+      }
     }
 
     const root = path.join(app.getPath('userData'), 'updates');
