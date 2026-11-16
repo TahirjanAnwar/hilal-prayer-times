@@ -82,4 +82,10 @@ api.onState(setState);
   setState(await api.getState());
   setInterval(render, 1000);
   setInterval(load, 60000); // new day, new times
+  // Settings changes are pushed to the widget; asking again every few seconds makes sure the
+  // language and the other settings can never stay out of step with the app.
+  setInterval(async () => {
+    const fresh = await api.getState();
+    if (JSON.stringify(fresh.settings) !== JSON.stringify(state.settings) || fresh.family.role !== state.family.role) setState(fresh);
+  }, 5000);
 })();
