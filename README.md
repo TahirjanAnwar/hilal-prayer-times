@@ -45,3 +45,7 @@ Set up in Settings → Family. One computer is the parent's, the others are chil
 ## Adhan sounds
 
 Fajr always plays `assets/fajr.mp3`. The other prayers play one of `assets/adhan-1.mp3` to `adhan-7.mp3`, chosen in Settings (or your own audio file). The recordings were supplied by the app owner.
+
+## License
+
+The source code is under the MIT license (see LICENSE). The adhan recordings in `assets/*.mp3` are not covered by it.
