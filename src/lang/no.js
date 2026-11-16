@@ -155,4 +155,6 @@ module.exports = {
   addPrayer: "+ Bønn",
   addPrayerHelp: "Legg til en bønn som ble bedt mens datamaskinen var av",
   childName: "Barnets navn",
+  widgetShow: "Vis widgeten på skrivebordet",
+  widgetTop: "Hold widgeten over andre vinduer",
 };

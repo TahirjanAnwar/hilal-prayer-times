@@ -155,4 +155,6 @@ module.exports = {
   addPrayer: "+ Gebet",
   addPrayerHelp: "Ein Gebet hinzufügen, das bei ausgeschaltetem Computer verrichtet wurde",
   childName: "Name des Kindes",
+  widgetShow: "Widget auf dem Desktop anzeigen",
+  widgetTop: "Widget über anderen Fenstern halten",
 };

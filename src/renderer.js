@@ -242,6 +242,9 @@ function fillSettings() {
   $('jumaTime').value = s.jumaTime.padStart(5, '0');
   $('hour12').value = s.hour12 ? '12' : '24';
   $('startup').checked = s.startup;
+  $('widget').checked = s.widget;
+  $('widgetTop').checked = s.widgetTop;
+  $('widgetTop').disabled = !s.widget;
   $('keyStatus').textContent = s.hasApiKey ? t('apiKeySaved') : t('apiKeyMissing');
   $('keyRemove').hidden = !s.hasApiKey;
   $('version').textContent = `v${state.version}`;
@@ -259,6 +262,8 @@ $('madhab').addEventListener('change', (e) => save({ madhab: e.target.value }));
 $('jumaTime').addEventListener('change', (e) => e.target.value && save({ jumaTime: e.target.value }));
 $('hour12').addEventListener('change', (e) => save({ hour12: e.target.value === '12' }));
 $('startup').addEventListener('change', (e) => save({ startup: e.target.checked }));
+$('widget').addEventListener('change', (e) => save({ widget: e.target.checked }));
+$('widgetTop').addEventListener('change', (e) => save({ widgetTop: e.target.checked }));
 $('pickAdhan').addEventListener('click', async () => { stopAdhan(); setState(await api.pickAdhan()); });
 $('adhanChoice').addEventListener('change', (e) => {
   stopAdhan();

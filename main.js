@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, ipcMain, Notification, dialog, nativeImage, safeStorage, shell } = require('electron');
+const { app, BrowserWindow, Tray, Menu, ipcMain, Notification, dialog, nativeImage, safeStorage, shell, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
@@ -19,6 +19,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let win = null;
+let widget = null;
 let tray = null;
 let quitting = false;
 let adhanPlaying = false;
@@ -40,6 +41,9 @@ const DEFAULTS = {
   adhanChoice: 1, // built-in adhan 1-7 for every prayer except Fajr
   adhanFile: null, // own file, used instead of the built-in choice
   startup: true,
+  widget: true, // small always-there window on the desktop with the next prayer
+  widgetTop: false, // keep the widget above other windows
+  widgetPos: null, // { x, y } after the user dragged it
   apiKeyEnc: null,
   firstRunDone: false,
 };
@@ -105,7 +109,8 @@ function applyStartup() {
 }
 
 function broadcast() {
-  if (win && !win.isDestroyed()) win.webContents.send('state:changed', publicState());
+  const st = publicState();
+  for (const w of [win, widget]) if (w && !w.isDestroyed()) w.webContents.send('state:changed', st);
   refreshTray();
 }
 
@@ -326,8 +331,75 @@ function createWindow() {
   win.webContents.on('will-navigate', (e) => e.preventDefault());
 }
 
+// ---------- desktop widget ----------
+const WIDGET_W = 300;
+const WIDGET_H = 84;
+
+function widgetPosition() {
+  const p = settings.widgetPos;
+  const onScreen = p && screen.getAllDisplays().some((d) => {
+    const a = d.workArea;
+    return p.x + WIDGET_W > a.x + 40 && p.x < a.x + a.width - 40 && p.y >= a.y && p.y < a.y + a.height - 40;
+  });
+  if (onScreen) return { x: p.x, y: p.y };
+  const a = screen.getPrimaryDisplay().workArea; // default: bottom right corner
+  return { x: a.x + a.width - WIDGET_W - 24, y: a.y + a.height - WIDGET_H - 24 };
+}
+
+// Shows or removes the widget to match the settings. It has no close button, and closing
+// it another way (Alt+F4) is refused; it only goes away through Settings, which a child's
+// computer protects with the parent PIN.
+function syncWidget() {
+  if (!settings.widget) {
+    if (widget && !widget.isDestroyed()) widget.destroy();
+    widget = null;
+    return;
+  }
+  if (widget && !widget.isDestroyed()) {
+    widget.setAlwaysOnTop(!!settings.widgetTop);
+    return;
+  }
+  widget = new BrowserWindow({
+    ...widgetPosition(),
+    width: WIDGET_W,
+    height: WIDGET_H,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    closable: false,
+    skipTaskbar: true,
+    hasShadow: false,
+    show: false,
+    alwaysOnTop: !!settings.widgetTop,
+    title: 'Hilal Prayer Times',
+    ...(process.platform === 'win32' ? { type: 'toolbar' } : {}), // keeps it out of Alt+Tab
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, backgroundThrottling: false },
+  });
+  const w = widget;
+  w.setMenu(null);
+  w.loadFile(path.join(__dirname, 'src', 'widget.html'));
+  w.once('ready-to-show', () => w.showInactive());
+  w.on('close', (e) => { if (!quitting) e.preventDefault(); });
+  w.on('minimize', () => w.restore());
+  // If the window is destroyed some other way, put it back.
+  w.on('closed', () => {
+    if (widget === w) widget = null;
+    if (!quitting && settings.widget) setTimeout(syncWidget, 300);
+  });
+  w.on('moved', () => {
+    const [x, y] = w.getPosition();
+    settings.widgetPos = { x, y };
+    saveSettings();
+  });
+  w.webContents.on('will-navigate', (e) => e.preventDefault());
+  w.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+}
+
 function showWindow() {
-  if (!win || win.isDestroyed()) return;
+  if (!win || win.isDestroyed()) { createWindow(); win.once('ready-to-show', () => win.show()); return; }
   if (win.isMinimized()) win.restore();
   win.show();
   win.focus();
@@ -391,6 +463,9 @@ function registerIpc() {
       for (const id of ADHAN_IDS) if (typeof p.adhanFor[id] === 'boolean') settings.adhanFor[id] = p.adhanFor[id];
     }
     if (typeof p.startup === 'boolean') { settings.startup = p.startup; applyStartup(); }
+    if (typeof p.widget === 'boolean') settings.widget = p.widget;
+    if (typeof p.widgetTop === 'boolean') settings.widgetTop = p.widgetTop;
+    if ('widget' in p || 'widgetTop' in p) syncWidget();
     saveSettings();
     broadcast();
     return publicState();
@@ -445,6 +520,7 @@ function registerIpc() {
   ipcMain.on('family:clearAlerts', () => family.clearAlerts());
   ipcMain.on('family:testLock', () => family.testLock());
   ipcMain.on('family:quit', () => { if (!family.guarded()) { quitting = true; app.quit(); } });
+  ipcMain.on('window:show', showWindow);
   ipcMain.handle('update:run', async (e) => {
     if (family.guarded()) return { status: 'error', error: '' };
     const r = await updater.run((p) => { if (!e.sender.isDestroyed()) e.sender.send('update:progress', p); });
@@ -488,6 +564,8 @@ app.whenReady().then(async () => {
   registerIpc();
   createWindow();
   createTray();
+  syncWidget();
+  screen.on('display-removed', () => { if (widget && !widget.isDestroyed()) { const p = widgetPosition(); widget.setPosition(p.x, p.y); } });
   setInterval(tick, 1000);
   setInterval(refreshTray, 60000);
   if (settings.locationMode === 'auto') refreshAutoLocation();

@@ -37,6 +37,10 @@ The logo lives in `assets/logo.svg`; after changing it run `npm run icons`.
 
 The installers are not code-signed. Windows SmartScreen shows "Windows protected your PC" (choose More info, Run anyway). On macOS, right-click the app and choose Open the first time. Signing needs a paid certificate (Apple Developer Program for macOS, a code-signing certificate for Windows).
 
+## Desktop widget
+
+A small window on the desktop shows the next prayer and a countdown (`src/widget.html`). It can be dragged anywhere and remembers its place. It has no close button and refuses Alt+F4; it is switched off under Settings → General, which on a child's computer needs the parent PIN. By default it sits on the desktop behind other windows; "Keep the widget above other windows" changes that.
+
 ## Updates
 
 Settings → Updates → **Update** downloads the current app files from the `main` branch of this repository (`updater.js`), checks each file against the checksum GitHub lists for it, and restarts into them. Only changed files are downloaded. The downloaded copy lives in the user's app-data folder; `boot.js` starts it instead of the installed copy and falls back to the installed copy if it fails to start twice.

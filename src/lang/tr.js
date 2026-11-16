@@ -155,4 +155,6 @@ module.exports = {
   addPrayer: "+ Namaz",
   addPrayerHelp: "Bilgisayar kapalıyken kılınan bir namazı ekle",
   childName: "Çocuğun adı",
+  widgetShow: "Masaüstünde küçük pencereyi göster",
+  widgetTop: "Küçük pencereyi diğer pencerelerin üstünde tut",
 };

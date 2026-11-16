@@ -155,4 +155,6 @@ module.exports = {
   addPrayer: "+ Prière",
   addPrayerHelp: "Ajouter une prière accomplie pendant que l’ordinateur était éteint",
   childName: "Prénom de l’enfant",
+  widgetShow: "Afficher le widget sur le bureau",
+  widgetTop: "Garder le widget au-dessus des autres fenêtres",
 };

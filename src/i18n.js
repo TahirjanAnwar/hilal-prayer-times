@@ -162,6 +162,8 @@ const en = {
   addPrayer: "+ Prayer",
   addPrayerHelp: "Add a prayer that was prayed while the computer was off",
   childName: "Child's name",
+  widgetShow: "Show the widget on the desktop",
+  widgetTop: "Keep the widget above other windows",
 };
 
 const nl = {
@@ -322,6 +324,8 @@ const nl = {
   addPrayer: "+ Gebed",
   addPrayerHelp: "Een gebed toevoegen dat is gebeden terwijl de computer uit stond",
   childName: "Naam van het kind",
+  widgetShow: "Widget op het bureaublad tonen",
+  widgetTop: "Widget boven andere vensters houden",
 };
 
 const ug = {
@@ -482,6 +486,8 @@ const ug = {
   addPrayer: "+ ناماز",
   addPrayerHelp: "كومپيۇتېر تاقاق ۋاقىتتا ئوقۇلغان نامازنى قوشۇش",
   childName: "بالىنىڭ ئىسمى",
+  widgetShow: "ئۈستەل يۈزىدە كىچىك كۆزنەكنى كۆرسىتىش",
+  widgetTop: "كىچىك كۆزنەكنى باشقا كۆزنەكلەرنىڭ ئۈستىدە تۇتۇش",
 };
 
 const LANGS = {

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'">
+  <title>Hilal Prayer Times</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="widget">
+  <!-- The whole card can be dragged; the logo is a button that opens the app. -->
+  <div class="w-card">
+    <button type="button" class="w-logo" id="open"><img src="../assets/logo.svg" alt=""></button>
+    <div class="w-text">
+      <div class="w-label"><span id="label"></span> · <span id="clock" dir="ltr"></span></div>
+      <div class="w-name" id="name">—</div>
+    </div>
+    <div class="w-count" id="count" dir="ltr">--:--:--</div>
+  </div>
+  <script src="widget.js"></script>
+</body>
+</html>

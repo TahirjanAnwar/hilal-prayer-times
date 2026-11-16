@@ -155,4 +155,6 @@ module.exports = {
   addPrayer: "＋礼拝",
   addPrayerHelp: "パソコンの電源が切れている間に行った礼拝を追加",
   childName: "子どもの名前",
+  widgetShow: "デスクトップにウィジェットを表示",
+  widgetTop: "ウィジェットを他のウィンドウより前に表示",
 };
