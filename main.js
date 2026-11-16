@@ -6,6 +6,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const prayer = require('./src/prayer');
 const i18n = require('./src/i18n');
 const family = require('./family');
+const updater = require('./updater');
 
 const START_HIDDEN = process.argv.includes('--hidden');
 const ADHAN_IDS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'juma'];
@@ -84,7 +85,7 @@ function publicState() {
     resolvedMethod: settings.location
       ? prayer.resolveMethod(settings.method, settings.location.countryCode) : null,
     qibla: settings.location ? prayer.qibla(settings.location) : null,
-    version: app.getVersion(),
+    version: updater.version(),
     family: family.view(),
   };
 }
@@ -440,6 +441,16 @@ function registerIpc() {
   ipcMain.on('family:clearAlerts', () => family.clearAlerts());
   ipcMain.on('family:testLock', () => family.testLock());
   ipcMain.on('family:quit', () => { if (!family.guarded()) { quitting = true; app.quit(); } });
+  ipcMain.handle('update:run', async (e) => {
+    if (family.guarded()) return { status: 'error', error: '' };
+    const r = await updater.run((p) => { if (!e.sender.isDestroyed()) e.sender.send('update:progress', p); });
+    if (r.status === 'ready') {
+      // Restart into the downloaded files, with the same options as this run.
+      setTimeout(() => { quitting = true; app.relaunch({ args: process.argv.slice(1).filter((a) => a !== '--hidden') }); app.quit(); }, 1200);
+    }
+    return r;
+  });
+  ipcMain.on('update:page', () => shell.openExternal(updater.PAGE));
   ipcMain.handle('lock:info', () => family.lockInfo());
   ipcMain.handle('lock:pin', (_e, pin) => family.lockPin(pin));
   ipcMain.on('ai:cancel', (_e, id) => { const st = aiStreams.get(id); if (st) st.abort(); });
@@ -476,4 +487,5 @@ app.whenReady().then(async () => {
   setInterval(tick, 1000);
   setInterval(refreshTray, 60000);
   if (settings.locationMode === 'auto') refreshAutoLocation();
+  setTimeout(updater.cleanup, 5000); // the app started fine: keep this version, remove older downloads
 });

@@ -9,7 +9,7 @@ npm install
 npm start
 ```
 
-Windows installer (`dist/Hilal-Prayer-Times-Setup-1.1.0.exe`):
+Windows installer (`dist/Hilal-Prayer-Times-Setup-<version>.exe`):
 
 ```bash
 npm run dist:win
@@ -30,6 +30,12 @@ The logo lives in `assets/logo.svg`; after changing it run `npm run icons`.
 ## Unsigned installers
 
 The installers are not code-signed. Windows SmartScreen shows "Windows protected your PC" (choose More info, Run anyway). On macOS, right-click the app and choose Open the first time. Signing needs a paid certificate (Apple Developer Program for macOS, a code-signing certificate for Windows).
+
+## Updates
+
+Settings → Updates → **Update** downloads the current app files from the `main` branch of this repository (`updater.js`), checks each file against the checksum GitHub lists for it, and restarts into them. Only changed files are downloaded. The downloaded copy lives in the user's app-data folder; `boot.js` starts it instead of the installed copy and falls back to the installed copy if it fails to start twice.
+
+The updater replaces the top-level `*.js` files (except `boot.js`), `package.json`, `src/` and `assets/`. A change to `boot.js`, the npm dependencies, the Electron version or `build/keyblock.exe` needs a new installer: raise `"shell"` in package.json and `SHELL` in boot.js, and older installs will say so. If you fork the project, change `REPO` in `updater.js`.
 
 ## Family mode (child lock)
 

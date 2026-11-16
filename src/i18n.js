@@ -129,6 +129,18 @@ const en = {
   lockLeft: "Unlocks in",
   lockParent: "Parent unlock",
   lockTest: "Lock test",
+  // updates
+  updatesSection: "Updates",
+  updateBtn: "Update",
+  updVersion: "Version {v}",
+  updChecking: "Checking for updates…",
+  updLatest: "You already have the latest version.",
+  updDownloading: "Downloading {n} of {m}…",
+  updRestart: "Updated. Restarting…",
+  updFailed: "The update did not work. Check the internet connection and try again. ({e})",
+  updInstaller: "This update needs the new installer. Download it from the project page.",
+  updOpenPage: "Open the project page",
+  updDev: "Updates are off while running from source code.",
 };
 
 const nl = {
@@ -258,6 +270,17 @@ const nl = {
   lockLeft: "Ontgrendelt over",
   lockParent: "Ouder ontgrendelt",
   lockTest: "Slottest",
+  updatesSection: "Updates",
+  updateBtn: "Bijwerken",
+  updVersion: "Versie {v}",
+  updChecking: "Zoeken naar updates…",
+  updLatest: "Je hebt al de nieuwste versie.",
+  updDownloading: "Downloaden: {n} van {m}…",
+  updRestart: "Bijgewerkt. Opnieuw starten…",
+  updFailed: "Het bijwerken is niet gelukt. Controleer de internetverbinding en probeer het opnieuw. ({e})",
+  updInstaller: "Voor deze update is het nieuwe installatieprogramma nodig. Download het van de projectpagina.",
+  updOpenPage: "Projectpagina openen",
+  updDev: "Updates staan uit wanneer de app vanuit de broncode draait.",
 };
 
 const ug = {
@@ -387,6 +410,17 @@ const ug = {
   lockLeft: "ئېچىلىشقا قالغان ۋاقىت",
   lockParent: "ئاتا-ئانا ئاچىدۇ",
   lockTest: "قۇلۇپ سىنىقى",
+  updatesSection: "يېڭىلاش",
+  updateBtn: "يېڭىلاش",
+  updVersion: "نەشرى {v}",
+  updChecking: "يېڭىلانما تەكشۈرۈلۈۋاتىدۇ…",
+  updLatest: "سىزدە ئەڭ يېڭى نەشرى بار.",
+  updDownloading: "چۈشۈرۈلۈۋاتىدۇ: {n} / {m}…",
+  updRestart: "يېڭىلاندى. قايتا قوزغىلىۋاتىدۇ…",
+  updFailed: "يېڭىلاش مەغلۇپ بولدى. تور ئۇلىنىشىنى تەكشۈرۈپ قايتا سىناڭ. ({e})",
+  updInstaller: "بۇ يېڭىلانما ئۈچۈن يېڭى ئورنىتىش پروگراممىسى كېرەك. ئۇنى تۈر بېتىدىن چۈشۈرۈڭ.",
+  updOpenPage: "تۈر بېتىنى ئېچىش",
+  updDev: "ئەپ ئەسلى كودتىن ئىجرا بولۇۋاتقاندا يېڭىلاش تاقاق.",
 };
 
 const LANGS = { en, nl, ug };

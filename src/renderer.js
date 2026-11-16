@@ -245,6 +245,7 @@ function fillSettings() {
   $('keyStatus').textContent = s.hasApiKey ? t('apiKeySaved') : t('apiKeyMissing');
   $('keyRemove').hidden = !s.hasApiKey;
   $('version').textContent = `v${state.version}`;
+  $('updVersion').textContent = t('updVersion', { v: state.version });
   audio.volume = s.volume;
 }
 
@@ -307,6 +308,23 @@ $('keyForm').addEventListener('submit', async (e) => {
   setState(await api.setApiKey(v));
 });
 $('keyRemove').addEventListener('click', async () => setState(await api.setApiKey('')));
+
+// ---------- updates ----------
+$('updBtn').addEventListener('click', async () => {
+  const say = (text) => { $('updMsg').textContent = text; };
+  $('updBtn').disabled = true;
+  $('updPage').hidden = true;
+  say(t('updChecking'));
+  const res = await api.updateRun();
+  if (res.status === 'ready') { say(t('updRestart')); return; } // the app restarts by itself
+  $('updBtn').disabled = false;
+  if (res.status === 'latest') say(t('updLatest'));
+  else if (res.status === 'dev') say(t('updDev'));
+  else if (res.status === 'installer') { say(t('updInstaller')); $('updPage').hidden = false; }
+  else say(t('updFailed', { e: res.error || '' }));
+});
+$('updPage').addEventListener('click', () => api.updatePage());
+api.onUpdateProgress(({ done, total }) => { $('updMsg').textContent = t('updDownloading', { n: done, m: total }); });
 
 // ---------- AI chat ----------
 let chat = []; // { role, content, error? }
