@@ -1,7 +1,7 @@
 {
   "name": "hilal-prayer-times",
   "productName": "Hilal Prayer Times",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Muslim prayer times with adhan, Juma reminder and an AI assistant",
   "author": "Hilal",
   "license": "MIT",
@@ -10,7 +10,7 @@
     "start": "electron .",
     "icons": "electron scripts/make-icons.js",
     "dist:win": "electron-builder --win",
-    "dist:mac": "electron-builder --mac",
+    "dist:mac": "electron-builder --mac -c.electronVersion=43.8.10",
     "keyblock": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-keyblock.ps1"
   },
   "build": {
@@ -63,7 +63,8 @@
       ],
       "icon": "build/icon.png",
       "category": "public.app-category.lifestyle",
-      "identity": "-"
+      "identity": "-",
+      "minimumSystemVersion": "12.0"
     },
     "dmg": {
       "artifactName": "Hilal-Prayer-Times-${version}.dmg"

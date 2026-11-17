@@ -6,7 +6,7 @@ Desktop app for Windows and macOS: the five daily prayers with adhan, a Juma row
 
 Windows: get the latest `Hilal-Prayer-Times-Setup-<version>.exe` from the [Releases page](https://github.com/TahirjanAnwar/hilal-prayer-times/releases/latest) and run it. After that, new versions arrive through Settings → Updates inside the app.
 
-macOS: get `Hilal-Prayer-Times-<version>.dmg` from the same page. It is built by GitHub Actions and is not notarized, so the first time right-click the app and choose Open.
+macOS: get `Hilal-Prayer-Times-<version>.dmg` from the same page. It runs on macOS 12 (Monterey) and later, on Intel and Apple Silicon. It is built by GitHub Actions and is not notarized, so the first time right-click the app and choose Open.
 
 ## Run and build
 
@@ -22,6 +22,8 @@ npm run dist:win
 ```
 
 macOS `.dmg`: a Mac is required, so GitHub builds it. Push this folder to a GitHub repository, open the **Actions** tab, run **Build installers**, and download the `.dmg` (and `.exe`) from the finished run. Pushing a tag such as `v1.0.0` starts the same build.
+
+The Mac build is packed with Electron 43 (`-c.electronVersion` in the `dist:mac` script) because Electron 44 and later need macOS 13, and Electron 43 is the last line that runs on macOS 12. Windows uses the Electron version in `devDependencies`. Keep the app code to APIs that Electron 43 has.
 
 The logo lives in `assets/logo.svg`; after changing it run `npm run icons`.
 
