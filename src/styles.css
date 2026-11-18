@@ -190,15 +190,15 @@ body {
    show the same letters. It only covers Arabic-script characters: numbers and Latin text keep
    the system font. */
 @font-face {
-  font-family: "Hilal Naskh";
-  src: url("fonts/NotoNaskhArabic.woff2") format("woff2");
+  font-family: "Hilal Uyghur";
+  src: url("fonts/NotoSansArabic.woff2") format("woff2");
   font-weight: 400 700;
   font-display: block;
   unicode-range: U+0600-06FF, U+0750-077F, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC;
 }
 
 html[lang="ug"] body {
-  font-family: "Hilal Naskh", "Segoe UI", Tahoma, "Geeza Pro", sans-serif;
+  font-family: "Hilal Uyghur", "Segoe UI", Tahoma, "Geeza Pro", sans-serif;
   font-size: 16px;
 }
 
