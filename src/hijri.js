@@ -43,5 +43,30 @@
     return value;
   }
 
-  window.HIJRI = { ramadan, noon };
+  // The days of the Islamic year the app lists: [name key, Hijri month, Hijri day].
+  const EVENTS = [
+    ['dayRamadan', 9, 1], ['dayLastTen', 9, 20], ['dayEidFitr', 10, 1], ['dayDhulHijjah', 12, 1],
+    ['dayArafah', 12, 9], ['dayEidAdha', 12, 10], ['dayNewYear', 1, 1], ['dayAshura', 1, 10],
+  ];
+  let upCache = { key: null, value: null };
+
+  // The next time each day comes: [{ id, days (from today), ms (noon UTC of that date) }], soonest
+  // first. The white days are the 13th to 15th of a month (not in Ramadan, when every day is a
+  // fast, and not in Dhul Hijjah, where the 13th is a day on which fasting is not allowed).
+  function upcoming(tz, adjust = 0, now = Date.now()) {
+    const base = noon(tz, adjust, now);
+    if (upCache.key === base) return upCache.value;
+    const real = noon(tz, 0, now);
+    const found = {};
+    for (let d = 0; d < 400; d++) {
+      const h = hijri(base + d * DAY);
+      if (!('dayWhite' in found) && h.day >= 13 && h.day <= 15 && h.month !== 9 && h.month !== 12) found.dayWhite = d;
+      for (const [id, month, day] of EVENTS) if (!(id in found) && h.month === month && h.day === day) found[id] = d;
+    }
+    const value = Object.entries(found).map(([id, days]) => ({ id, days, ms: real + days * DAY })).sort((a, b) => a.days - b.days);
+    upCache = { key: base, value };
+    return value;
+  }
+
+  window.HIJRI = { ramadan, noon, upcoming };
 })();

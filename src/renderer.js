@@ -47,11 +47,12 @@ const THEME_ICONS = {
   day: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
   night: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
   relaxed: '<path d="M5 19c0-8 5-13 14-14 0 9-5 14-14 14zM5 19l8-8"/>',
+  emerald: '<path d="M6.5 4h11L21.5 9 12 20 2.5 9zM2.5 9h19"/>',
   glassDark: '<rect class="dim" x="4" y="4" width="16" height="16" rx="4"/><path d="M8 13l5-5M11 16l5-5"/>',
   glassLight: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 13l5-5M11 16l5-5"/>',
 };
-const THEME_KEYS = { auto: 'themeAuto', system: 'themeSystem', day: 'themeDay', night: 'themeNight', relaxed: 'themeRelaxed', glassDark: 'themeGlassDark', glassLight: 'themeGlassLight' };
-const THEME_CYCLE = ['auto', 'day', 'night', 'relaxed', 'glassDark', 'glassLight'];
+const THEME_KEYS = { auto: 'themeAuto', system: 'themeSystem', day: 'themeDay', night: 'themeNight', relaxed: 'themeRelaxed', emerald: 'themeEmerald', glassDark: 'themeGlassDark', glassLight: 'themeGlassLight' };
+const THEME_CYCLE = ['auto', 'day', 'night', 'relaxed', 'emerald', 'glassDark', 'glassLight'];
 
 let state = null;
 let S = {};
@@ -169,7 +170,52 @@ function renderRamadan() {
   $('ramadan').hidden = false;
   $('ramadan').classList.toggle('on', r.inRamadan);
   $('ramadanText').textContent = r.inRamadan ? t('ramadanDay', { d: r.day, n: r.left }) : t('ramadanIn', { n: r.until });
+  $('ramadan').title = t('islamicDays');
+  if (!$('daysModal').hidden) renderDays();
 }
+
+// The Islamic days list: opened from the Ramadan line. Dates and "in 82 days" are written
+// by the computer's own language data, so they follow the chosen language.
+const UZ_MONTHS = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentabr', 'oktabr', 'noyabr', 'dekabr'];
+const UZ_DAYS = ['Yak', 'Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan'];
+const DAYS_OWN = {
+  ug: {
+    rel: (n) => (n === 0 ? 'بۈگۈن' : n === 1 ? 'ئەتە' : `${n} كۈندىن كېيىن`),
+    date: (d) => `${d.getUTCFullYear()}-يىلى ${d.getUTCMonth() + 1}-ئاينىڭ ${d.getUTCDate()}-كۈنى، ${UG_DAYS[d.getUTCDay()]}`,
+  },
+  uz: {
+    rel: (n) => (n === 0 ? 'bugun' : n === 1 ? 'ertaga' : `${n} kundan keyin`),
+    date: (d) => `${UZ_DAYS[d.getUTCDay()]}, ${d.getUTCDate()}-${UZ_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`,
+  },
+};
+function renderDays() {
+  if (!times) return;
+  const locale = LOCALES[state.settings.language] || 'en-GB';
+  const date = new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  const rel = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  const own = DAYS_OWN[state.settings.language]; // languages the app has no date data for
+  $('daysList').replaceChildren(...HIJRI.upcoming(times.tz, state.settings.hijriAdjust).map((ev) => {
+    const row = document.createElement('div');
+    row.className = ev.days === 0 ? 'day-row today' : 'day-row';
+    const name = document.createElement('div');
+    name.className = 'day-name';
+    name.textContent = t(ev.id);
+    const when = document.createElement('div');
+    when.className = 'day-when';
+    const inDays = document.createElement('span');
+    inDays.textContent = own ? own.rel(ev.days) : rel.format(ev.days, 'day');
+    const on = document.createElement('small');
+    const d = new Date(ev.ms);
+    on.textContent = own ? own.date(d) : date.format(d);
+    when.append(inDays, on);
+    row.append(name, when);
+    return row;
+  }));
+}
+$('ramadan').addEventListener('click', () => { renderDays(); $('daysModal').hidden = false; $('daysClose').focus(); });
+$('daysClose').addEventListener('click', () => { $('daysModal').hidden = true; });
+$('daysModal').addEventListener('click', (e) => { if (e.target === $('daysModal')) $('daysModal').hidden = true; });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('daysModal').hidden = true; });
 
 // ---------- prayer times view ----------
 function locationText() {

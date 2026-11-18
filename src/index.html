@@ -38,10 +38,11 @@
         <div class="hero-count" id="heroCount" dir="ltr">--:--:--</div>
         <div class="hero-time" id="heroTime" dir="ltr"></div>
       </div>
-      <div class="ramadan" id="ramadan" hidden>
+      <button type="button" class="ramadan" id="ramadan" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
         <span id="ramadanText"></span>
-      </div>
+        <svg class="cal" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14.5" rx="2.5"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/></svg>
+      </button>
       <div class="rows" id="rows"></div>
       <div class="foot">
         <div id="dateGreg"></div>
@@ -149,6 +150,7 @@
             <option value="day" data-i18n="themeDay"></option>
             <option value="night" data-i18n="themeNight"></option>
             <option value="relaxed" data-i18n="themeRelaxed"></option>
+            <option value="emerald" data-i18n="themeEmerald"></option>
             <option value="glassDark" data-i18n="themeGlassDark"></option>
             <option value="glassLight" data-i18n="themeGlassLight"></option>
           </select>
@@ -284,6 +286,17 @@
       <div class="btns">
         <button type="button" class="ghost" id="updLater" data-i18n="later"></button>
         <button type="button" class="primary" id="updNow"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="daysModal" hidden>
+    <div class="card stack">
+      <h2 data-i18n="islamicDays"></h2>
+      <div class="days" id="daysList"></div>
+      <p class="muted small" data-i18n="daysNote"></p>
+      <div class="btns">
+        <button type="button" class="primary" id="daysClose" data-i18n="close"></button>
       </div>
     </div>
   </div>

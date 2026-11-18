@@ -192,6 +192,19 @@ const en = {
   everyNMinutes: "Every {n} minutes",
   weatherTemp: "Weather temperature",
   weatherOff: "Don't show",
+  islamicDays: "Islamic days",
+  dayWhite: "White days fasting (13–15)",
+  dayRamadan: "Start of Ramadan",
+  dayLastTen: "Last ten nights of Ramadan",
+  dayEidFitr: "Eid al-Fitr",
+  dayDhulHijjah: "First ten days of Dhul Hijjah",
+  dayArafah: "Day of Arafah",
+  dayEidAdha: "Eid al-Adha",
+  dayNewYear: "Islamic new year",
+  dayAshura: "Ashura",
+  daysNote: "These dates are calculated. The real day depends on the moon sighting and can differ by a day.",
+  close: "Close",
+  themeEmerald: "Emerald",
 };
 
 const nl = {
@@ -382,6 +395,19 @@ const nl = {
   everyNMinutes: "Elke {n} minuten",
   weatherTemp: "Weer en temperatuur",
   weatherOff: "Niet tonen",
+  islamicDays: "Islamitische dagen",
+  dayWhite: "Vasten op de witte dagen (13–15)",
+  dayRamadan: "Begin van de Ramadan",
+  dayLastTen: "Laatste tien nachten van de Ramadan",
+  dayEidFitr: "Eid al-Fitr (Suikerfeest)",
+  dayDhulHijjah: "Eerste tien dagen van Dhul Hijjah",
+  dayArafah: "Dag van Arafah",
+  dayEidAdha: "Eid al-Adha (Offerfeest)",
+  dayNewYear: "Islamitisch nieuwjaar",
+  dayAshura: "Ashura",
+  daysNote: "Deze data zijn berekend. De echte dag hangt af van de maanwaarneming en kan een dag verschillen.",
+  close: "Sluiten",
+  themeEmerald: "Smaragd",
 };
 
 const ug = {
@@ -572,6 +598,19 @@ const ug = {
   everyNMinutes: "ھەر {n} مىنۇتتا",
   weatherTemp: "ھاۋا تېمپېراتۇرىسى",
   weatherOff: "كۆرسەتمەسلىك",
+  islamicDays: "ئىسلام كۈنلىرى",
+  dayWhite: "ئاق كۈنلەر روزىسى (13–15)",
+  dayRamadan: "رامىزاننىڭ باشلىنىشى",
+  dayLastTen: "رامىزاننىڭ ئاخىرقى ئون كېچىسى",
+  dayEidFitr: "روزا ھېيت",
+  dayDhulHijjah: "زۇلھەججىنىڭ ئالدىنقى ئون كۈنى",
+  dayArafah: "ئەرەفات كۈنى",
+  dayEidAdha: "قۇربان ھېيت",
+  dayNewYear: "ھىجرىيە يېڭى يىلى",
+  dayAshura: "ئاشۇرا كۈنى",
+  daysNote: "بۇ چېسلالار ھېسابلاپ چىقىرىلغان. ھەقىقىي كۈن ئاي كۆرۈشكە باغلىق بولۇپ، بىر كۈن پەرقلىنىشى مۇمكىن.",
+  close: "تاقاش",
+  themeEmerald: "زۇمرەت",
 };
 
 const LANGS = {

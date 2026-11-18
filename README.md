@@ -99,3 +99,7 @@ Fajr always plays `assets/fajr.mp3`. The other prayers play one of `assets/adhan
 ## License
 
 The source code is under the MIT license (see LICENSE). The adhan recordings in `assets/*.mp3` are not covered by it.
+
+## Islamic days
+
+Clicking the Ramadan line under the countdown opens a list of the coming days of the Islamic year with the days left and the date. The dates are calculated with the Umm al-Qura calendar (see `src/hijri.js`) and follow the Hijri date adjustment in Settings; the real day depends on the moon sighting and can differ by a day.

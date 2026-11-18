@@ -12,7 +12,7 @@ const START_HIDDEN = process.argv.includes('--hidden');
 const ADHAN_IDS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'juma'];
 const HADITH_MINUTES = [10, 30, 60, 180, 360, 720, 1440];
 const TEMP_UNITS = ['auto', 'c', 'f', 'off'];
-const THEMES = ['auto', 'system', 'day', 'night', 'relaxed', 'glassDark', 'glassLight'];
+const THEMES = ['auto', 'system', 'day', 'night', 'relaxed', 'emerald', 'glassDark', 'glassLight'];
 
 // Let the adhan play without a click, even when the window is hidden.
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -51,7 +51,7 @@ const DEFAULTS = {
   hadithHours: 24, // (older versions) how often they change, in hours
   hadithMinutes: null, // how often they change: 10, 30, 60, 180, 360, 720 or 1440 minutes
   tempUnit: 'auto', // the weather: 'auto' (Fahrenheit where that is usual, else Celsius) | 'c' | 'f' | 'off'
-  theme: 'auto', // 'auto' (day after sunrise, night after Maghrib) | 'system' | 'day' | 'night' | 'relaxed' | 'glassDark' | 'glassLight'
+  theme: 'auto', // 'auto' (day after sunrise, night after Maghrib) | 'system' | 'day' | 'night' | 'relaxed' | 'emerald' | 'glassDark' | 'glassLight'
   glass: 60, // how see-through the panes of the two glass looks are, 0 (solid) to 100 (clear)
   hijriAdjust: 0, // days to shift the calculated Islamic date, -2..2, to match the local moon sighting
   updateCheck: true, // look for a new version by itself and tell the user
