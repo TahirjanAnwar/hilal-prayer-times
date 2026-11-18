@@ -134,12 +134,19 @@ async function run(onProgress = () => {}) {
 function cleanup() {
   const shell = global.hilalShell;
   if (!app.isPackaged || !shell) return;
-  shell.bootOk();
   const root = path.join(app.getPath('userData'), 'updates');
+  // An update downloaded in the first seconds after the start is the next version, not an
+  // old one: keep the folder current.json points to, and leave a download in progress alone.
+  let next = null;
+  try { next = path.basename(String(JSON.parse(fs.readFileSync(path.join(root, 'current.json'), 'utf8')).dir)); } catch { /* no update waiting */ }
+  // bootOk rewrites current.json for the copy that is running; skip it when a newer
+  // download has already taken that file over.
+  if (!next || next === path.basename(shell.active)) shell.bootOk();
   try {
     for (const name of fs.readdirSync(root)) {
       const full = path.join(root, name);
-      if (name !== 'current.json' && path.resolve(full) !== path.resolve(shell.active)) fs.rmSync(full, { recursive: true, force: true });
+      if (name === 'current.json' || name === next || name.endsWith('.tmp') || path.resolve(full) === path.resolve(shell.active)) continue;
+      fs.rmSync(full, { recursive: true, force: true });
     }
   } catch { /* no updates folder yet */ }
 }
