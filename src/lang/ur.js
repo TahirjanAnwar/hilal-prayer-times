@@ -181,4 +181,5 @@ module.exports = {
   later: "بعد میں",
   themeGlassDark: "گہرا شیشہ",
   themeGlassLight: "ہلکا شیشہ",
+  glassTransparency: "شیشے کی شفافیت",
 };

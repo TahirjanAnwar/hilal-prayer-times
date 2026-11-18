@@ -133,6 +133,7 @@ function applyTheme() {
     else theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'day' : 'night';
   }
   if (document.documentElement.dataset.theme !== theme) document.documentElement.dataset.theme = theme;
+  if (!glassDragging) setGlass(state.settings.glass);
   const btn = $('themeBtn');
   if (btn.dataset.mode !== mode + S.dir + state.settings.language) {
     btn.dataset.mode = mode + S.dir + state.settings.language;
@@ -140,6 +141,15 @@ function applyTheme() {
     btn.title = `${t('theme')}: ${t(THEME_KEYS[mode] || 'themeAuto')}`;
   }
 }
+// How see-through the glass panes are: 0 is solid, 100 is clear.
+let glassDragging = false;
+function setGlass(pct) {
+  document.documentElement.style.setProperty('--glass-t', String(pct / 100));
+  $('glassPct').textContent = `${pct}%`;
+}
+$('glass').addEventListener('input', (e) => { glassDragging = true; setGlass(Number(e.target.value)); });
+$('glass').addEventListener('change', async (e) => { await save({ glass: Number(e.target.value) }); glassDragging = false; });
+
 $('themeBtn').addEventListener('click', () => {
   const next = THEME_CYCLE[(THEME_CYCLE.indexOf(state.settings.theme) + 1) % THEME_CYCLE.length];
   save({ theme: next });
@@ -324,6 +334,8 @@ function fillSettings() {
   $('hour12').value = s.hour12 ? '12' : '24';
   $('hijriAdjust').value = String(s.hijriAdjust);
   $('theme').value = s.theme;
+  $('glassLine').hidden = !s.theme.startsWith('glass');
+  if (!glassDragging) $('glass').value = String(s.glass);
   $('updateCheck').checked = s.updateCheck;
   $('startup').checked = s.startup;
   $('widget').checked = s.widget;

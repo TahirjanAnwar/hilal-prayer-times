@@ -180,4 +180,5 @@ module.exports = {
   later: "बाद में",
   themeGlassDark: "डार्क ग्लास",
   themeGlassLight: "लाइट ग्लास",
+  glassTransparency: "ग्लास की पारदर्शिता",
 };

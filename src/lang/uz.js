@@ -180,4 +180,5 @@ module.exports = {
   later: "Keyinroq",
   themeGlassDark: "Qora shisha",
   themeGlassLight: "Oq shisha",
+  glassTransparency: "Shisha shaffofligi",
 };

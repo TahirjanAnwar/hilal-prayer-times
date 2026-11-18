@@ -180,4 +180,5 @@ module.exports = {
   later: "Sonra",
   themeGlassDark: "Koyu cam",
   themeGlassLight: "Açık cam",
+  glassTransparency: "Cam saydamlığı",
 };

@@ -180,4 +180,5 @@ module.exports = {
   later: "Nanti",
   themeGlassDark: "Kaca gelap",
   themeGlassLight: "Kaca terang",
+  glassTransparency: "Transparansi kaca",
 };

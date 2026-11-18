@@ -187,6 +187,7 @@ const en = {
   later: "Later",
   themeGlassDark: "Dark Glass",
   themeGlassLight: "Light Glass",
+  glassTransparency: "Glass transparency",
 };
 
 const nl = {
@@ -372,6 +373,7 @@ const nl = {
   later: "Later",
   themeGlassDark: "Donker glas",
   themeGlassLight: "Licht glas",
+  glassTransparency: "Transparantie van het glas",
 };
 
 const ug = {
@@ -557,6 +559,7 @@ const ug = {
   later: "كېيىن",
   themeGlassDark: "قارا ئەينەك",
   themeGlassLight: "ئاق ئەينەك",
+  glassTransparency: "ئەينەكنىڭ سۈزۈكلۈكى",
 };
 
 const LANGS = {

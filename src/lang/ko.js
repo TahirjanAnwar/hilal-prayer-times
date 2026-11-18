@@ -180,4 +180,5 @@ module.exports = {
   later: "나중에",
   themeGlassDark: "다크 글래스",
   themeGlassLight: "라이트 글래스",
+  glassTransparency: "글래스 투명도",
 };

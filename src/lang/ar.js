@@ -181,4 +181,5 @@ module.exports = {
   later: "لاحقًا",
   themeGlassDark: "زجاج داكن",
   themeGlassLight: "زجاج فاتح",
+  glassTransparency: "شفافية الزجاج",
 };

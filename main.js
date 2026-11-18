@@ -48,6 +48,7 @@ const DEFAULTS = {
   widgetHadith: true, // show a hadith and a dua on the widget
   hadithHours: 24, // how often they change: 1, 3, 6, 12 or 24 hours
   theme: 'auto', // 'auto' (day after sunrise, night after Maghrib) | 'system' | 'day' | 'night' | 'relaxed' | 'glassDark' | 'glassLight'
+  glass: 60, // how see-through the panes of the two glass looks are, 0 (solid) to 100 (clear)
   hijriAdjust: 0, // days to shift the calculated Islamic date, -2..2, to match the local moon sighting
   updateCheck: true, // look for a new version by itself and tell the user
   apiKeyEnc: null,
@@ -521,6 +522,7 @@ function registerIpc() {
     if (typeof p.widgetHadith === 'boolean') settings.widgetHadith = p.widgetHadith;
     if ([1, 3, 6, 12, 24].includes(p.hadithHours)) settings.hadithHours = p.hadithHours;
     if (THEMES.includes(p.theme)) settings.theme = p.theme;
+    if (Number.isFinite(p.glass)) settings.glass = Math.round(Math.min(100, Math.max(0, p.glass)));
     if (Number.isInteger(p.hijriAdjust) && Math.abs(p.hijriAdjust) <= 2) settings.hijriAdjust = p.hijriAdjust;
     if (typeof p.updateCheck === 'boolean') settings.updateCheck = p.updateCheck;
     if ('widget' in p || 'widgetTop' in p) syncWidget();

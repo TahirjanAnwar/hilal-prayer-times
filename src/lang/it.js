@@ -180,4 +180,5 @@ module.exports = {
   later: "Più tardi",
   themeGlassDark: "Vetro scuro",
   themeGlassLight: "Vetro chiaro",
+  glassTransparency: "Trasparenza del vetro",
 };
