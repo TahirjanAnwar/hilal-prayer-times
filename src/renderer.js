@@ -47,9 +47,11 @@ const THEME_ICONS = {
   day: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
   night: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
   relaxed: '<path d="M5 19c0-8 5-13 14-14 0 9-5 14-14 14zM5 19l8-8"/>',
+  glassDark: '<rect class="dim" x="4" y="4" width="16" height="16" rx="4"/><path d="M8 13l5-5M11 16l5-5"/>',
+  glassLight: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 13l5-5M11 16l5-5"/>',
 };
-const THEME_KEYS = { auto: 'themeAuto', system: 'themeSystem', day: 'themeDay', night: 'themeNight', relaxed: 'themeRelaxed' };
-const THEME_CYCLE = ['auto', 'day', 'night', 'relaxed'];
+const THEME_KEYS = { auto: 'themeAuto', system: 'themeSystem', day: 'themeDay', night: 'themeNight', relaxed: 'themeRelaxed', glassDark: 'themeGlassDark', glassLight: 'themeGlassLight' };
+const THEME_CYCLE = ['auto', 'day', 'night', 'relaxed', 'glassDark', 'glassLight'];
 
 let state = null;
 let S = {};

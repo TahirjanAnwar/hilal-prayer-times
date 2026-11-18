@@ -179,4 +179,6 @@ module.exports = {
   updNewBodyNoV: "يتوفر إصدار أحدث.",
   updNow: "حدِّث الآن",
   later: "لاحقًا",
+  themeGlassDark: "زجاج داكن",
+  themeGlassLight: "زجاج فاتح",
 };

@@ -179,4 +179,6 @@ module.exports = {
   updNewBodyNoV: "نیا ورژن دستیاب ہے۔",
   updNow: "ابھی اپ ڈیٹ کریں",
   later: "بعد میں",
+  themeGlassDark: "گہرا شیشہ",
+  themeGlassLight: "ہلکا شیشہ",
 };

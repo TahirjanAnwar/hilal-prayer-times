@@ -10,7 +10,7 @@ const updater = require('./updater');
 
 const START_HIDDEN = process.argv.includes('--hidden');
 const ADHAN_IDS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'juma'];
-const THEMES = ['auto', 'system', 'day', 'night', 'relaxed'];
+const THEMES = ['auto', 'system', 'day', 'night', 'relaxed', 'glassDark', 'glassLight'];
 
 // Let the adhan play without a click, even when the window is hidden.
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -47,7 +47,7 @@ const DEFAULTS = {
   widgetPos: null, // { x, y } after the user dragged it
   widgetHadith: true, // show a hadith and a dua on the widget
   hadithHours: 24, // how often they change: 1, 3, 6, 12 or 24 hours
-  theme: 'auto', // 'auto' (day after sunrise, night after Maghrib) | 'system' | 'day' | 'night' | 'relaxed'
+  theme: 'auto', // 'auto' (day after sunrise, night after Maghrib) | 'system' | 'day' | 'night' | 'relaxed' | 'glassDark' | 'glassLight'
   hijriAdjust: 0, // days to shift the calculated Islamic date, -2..2, to match the local moon sighting
   updateCheck: true, // look for a new version by itself and tell the user
   apiKeyEnc: null,

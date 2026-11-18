@@ -59,6 +59,77 @@
   --sun: #cf9a45;
 }
 
+/* Dark Glass and Light Glass: panes of frosted glass over a soft blurred backdrop. The
+   panes blur what lies behind them inside the window and carry a bright top edge and a
+   shadow, which gives the raised, three-dimensional look. */
+:root[data-theme="glassDark"] {
+  --bg1: #07080b;
+  --bg2: #14171c;
+  --card: rgba(255, 255, 255, 0.07);
+  --card-strong: rgba(255, 255, 255, 0.17);
+  --line: rgba(255, 255, 255, 0.16);
+  --text: #f3f5f8;
+  --muted: #a5acb7;
+  --accent: #a9d4ff;
+  --accent-ink: #0a0d12;
+  --danger: #ffaaa2;
+  --sun: #ffd27a;
+  --backdrop:
+    radial-gradient(55% 38% at 12% 8%, rgba(104, 126, 160, 0.6), transparent 72%),
+    radial-gradient(48% 34% at 92% 30%, rgba(74, 84, 116, 0.6), transparent 72%),
+    radial-gradient(60% 40% at 30% 72%, rgba(54, 64, 84, 0.75), transparent 72%),
+    radial-gradient(60% 40% at 85% 100%, rgba(92, 104, 128, 0.5), transparent 72%),
+    linear-gradient(160deg, #040506, #15181d);
+  --pane: linear-gradient(150deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.04) 55%, rgba(255, 255, 255, 0.07));
+  --pane-edge: rgba(255, 255, 255, 0.2);
+  --pane-hi: rgba(255, 255, 255, 0.34);
+  --pane-lo: rgba(0, 0, 0, 0.4);
+  --pane-shadow: rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="glassLight"] {
+  --bg1: #f6f8fb;
+  --bg2: #e6ebf2;
+  --card: rgba(255, 255, 255, 0.5);
+  --card-strong: rgba(255, 255, 255, 0.86);
+  --line: rgba(40, 60, 90, 0.14);
+  --text: #1c2531;
+  --muted: #5f6b7a;
+  --accent: #2c6fcb;
+  --accent-ink: #ffffff;
+  --danger: #b3463c;
+  --sun: #e2930f;
+  --backdrop:
+    radial-gradient(55% 38% at 10% 6%, rgba(160, 196, 240, 0.75), transparent 72%),
+    radial-gradient(48% 34% at 94% 28%, rgba(214, 196, 236, 0.7), transparent 72%),
+    radial-gradient(60% 40% at 28% 74%, rgba(190, 224, 232, 0.75), transparent 72%),
+    radial-gradient(60% 40% at 88% 100%, rgba(236, 214, 204, 0.7), transparent 72%),
+    linear-gradient(160deg, #ffffff, #e4e9f1);
+  --pane: linear-gradient(150deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.38) 55%, rgba(255, 255, 255, 0.55));
+  --pane-edge: rgba(255, 255, 255, 0.9);
+  --pane-hi: rgba(255, 255, 255, 1);
+  --pane-lo: rgba(60, 80, 110, 0.14);
+  --pane-shadow: rgba(50, 70, 100, 0.2);
+}
+:root[data-theme^="glass"] body:not(.widget) { background: var(--backdrop) fixed; }
+:root[data-theme^="glass"] :is(.row:not(.minor), .card, .ramadan, .banner, .msg.assistant, .chips button, .results button) {
+  background: var(--pane);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: inset 0 1px 0 var(--pane-hi), inset 0 -1px 0 var(--pane-lo), 0 8px 20px -6px var(--pane-shadow);
+}
+:root[data-theme^="glass"] :is(.row:not(.minor):not(.next), .card, .ramadan:not(.on), .msg.assistant) { border: 1px solid var(--pane-edge); }
+:root[data-theme^="glass"] .row.next, :root[data-theme^="glass"] .ramadan.on {
+  box-shadow: inset 0 1px 0 var(--pane-hi), inset 0 -1px 0 var(--pane-lo), 0 0 0 1px var(--accent), 0 10px 24px -6px var(--pane-shadow);
+}
+:root[data-theme^="glass"] .tabs {
+  background: var(--pane); border-top: 1px solid var(--pane-edge);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4); backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: inset 0 1px 0 var(--pane-hi);
+}
+:root[data-theme^="glass"] :is(.bell, .theme-btn, .ghost) { background: var(--card); box-shadow: inset 0 1px 0 var(--pane-hi); }
+:root[data-theme^="glass"] .primary { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 10px -3px var(--pane-shadow); }
+:root[data-theme^="glass"] .modal .card { background: var(--bg2); }
+
 * { box-sizing: border-box; }
 
 html, body { height: 100%; margin: 0; }
@@ -93,6 +164,7 @@ button { cursor: pointer; }
 .theme-btn:hover { border-color: var(--accent); }
 .theme-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .theme-btn svg .fill { fill: var(--accent); stroke: none; }
+.theme-btn svg .dim { fill: var(--accent); fill-opacity: 0.35; }
 .app-name { font-weight: 600; font-size: 16px; }
 .loc-btn {
   background: none; border: 0; padding: 0; color: var(--muted);

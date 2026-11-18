@@ -178,4 +178,6 @@ module.exports = {
   updNewBodyNoV: "Yangiroq versiya chiqdi.",
   updNow: "Hozir yangilash",
   later: "Keyinroq",
+  themeGlassDark: "Qora shisha",
+  themeGlassLight: "Oq shisha",
 };

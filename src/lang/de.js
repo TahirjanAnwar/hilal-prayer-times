@@ -178,4 +178,6 @@ module.exports = {
   updNewBodyNoV: "Eine neuere Version ist verfügbar.",
   updNow: "Jetzt aktualisieren",
   later: "Später",
+  themeGlassDark: "Dunkles Glas",
+  themeGlassLight: "Helles Glas",
 };

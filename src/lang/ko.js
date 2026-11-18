@@ -178,4 +178,6 @@ module.exports = {
   updNewBodyNoV: "더 새로운 버전을 사용할 수 있습니다.",
   updNow: "지금 업데이트",
   later: "나중에",
+  themeGlassDark: "다크 글래스",
+  themeGlassLight: "라이트 글래스",
 };

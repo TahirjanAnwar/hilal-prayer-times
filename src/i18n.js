@@ -185,6 +185,8 @@ const en = {
   updNewBodyNoV: "A newer version is available.",
   updNow: "Update now",
   later: "Later",
+  themeGlassDark: "Dark Glass",
+  themeGlassLight: "Light Glass",
 };
 
 const nl = {
@@ -368,6 +370,8 @@ const nl = {
   updNewBodyNoV: "Er is een nieuwere versie beschikbaar.",
   updNow: "Nu bijwerken",
   later: "Later",
+  themeGlassDark: "Donker glas",
+  themeGlassLight: "Licht glas",
 };
 
 const ug = {
@@ -551,6 +555,8 @@ const ug = {
   updNewBodyNoV: "يېڭىراق نەشرى چىقتى.",
   updNow: "ھازىر يېڭىلاش",
   later: "كېيىن",
+  themeGlassDark: "قارا ئەينەك",
+  themeGlassLight: "ئاق ئەينەك",
 };
 
 const LANGS = {

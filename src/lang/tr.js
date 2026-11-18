@@ -178,4 +178,6 @@ module.exports = {
   updNewBodyNoV: "Daha yeni bir sürüm yayınlandı.",
   updNow: "Şimdi güncelle",
   later: "Sonra",
+  themeGlassDark: "Koyu cam",
+  themeGlassLight: "Açık cam",
 };
