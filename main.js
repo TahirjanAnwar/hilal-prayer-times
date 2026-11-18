@@ -219,7 +219,7 @@ async function refreshAutoLocation() {
 async function searchCities(query) {
   const q = String(query || '').trim().slice(0, 80);
   if (q.length < 2) return [];
-  const lang = ['nl', 'tr', 'de', 'fr', 'ja'].includes(settings.language) ? settings.language : 'en'; // languages the city search knows
+  const lang = ['nl', 'tr', 'de', 'fr', 'ja', 'es', 'it', 'pt', 'ru'].includes(settings.language) ? settings.language : 'en'; // languages the city search knows
   const j = await getJson(`https://geocoding-api.open-meteo.com/v1/search?count=8&format=json&language=${lang}&name=${encodeURIComponent(q)}`);
   return (j.results || []).map((r) => ({
     city: r.name, region: r.admin1 || '', country: r.country || '', countryCode: r.country_code || '',
@@ -234,7 +234,7 @@ Accuracy matters more than anything else here, because people may act on what yo
 
 Where the schools of law differ, say that they differ and summarise the main positions fairly instead of presenting one as the only view. For personal rulings that depend on someone's circumstances (divorce, inheritance, medical matters, finance), explain the general principles and recommend asking a qualified local scholar.
 
-Answer in the language the person writes in. The app is used in English, Uyghur (Arabic script), Dutch, Turkish, German, Norwegian, French and Japanese. Write in plain text without Markdown symbols such as asterisks or pound signs, because the chat window shows text exactly as written. Keep answers focused; tell stories warmly and at a comfortable length. If asked about something unrelated to Islam, answer briefly and kindly.`;
+Answer in the language the person writes in. The app is used in many languages, among them English, Uyghur (Arabic script), Arabic, Urdu, Hindi, Indonesian, Turkish, Uzbek, Russian, Dutch, German, French, Spanish, Italian, Portuguese, Norwegian, Swedish, Finnish, Japanese and Korean. Write in plain text without Markdown symbols such as asterisks or pound signs, because the chat window shows text exactly as written. Keep answers focused; tell stories warmly and at a comfortable length. If asked about something unrelated to Islam, answer briefly and kindly.`;
 
 function getApiKey() {
   if (!settings.apiKeyEnc) return null;

@@ -15,7 +15,8 @@ const METHOD_NAMES = {
   Singapore: 'Singapore / Malaysia / Indonesia',
   Tehran: 'Tehran',
 };
-const LOCALES = { en: 'en-GB', nl: 'nl-NL', ug: 'ug', tr: 'tr-TR', de: 'de-DE', no: 'nb-NO', fr: 'fr-FR', ja: 'ja-JP' };
+const LOCALES = { en: 'en-GB', nl: 'nl-NL', ug: 'ug', tr: 'tr-TR', de: 'de-DE', no: 'nb-NO', fr: 'fr-FR', ja: 'ja-JP',
+  ar: 'ar', ur: 'ur-PK', hi: 'hi-IN', id: 'id-ID', ru: 'ru-RU', uz: 'uz-UZ', es: 'es-ES', it: 'it-IT', pt: 'pt-BR', ko: 'ko-KR', fi: 'fi-FI', sv: 'sv-SE' };
 const BELL_SVG = '<svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/><path class="slash" d="M4 4l16 16"/></svg>';
 
 // Where the sun is at each prayer: a small sky with the sun on its way from sunrise (right)

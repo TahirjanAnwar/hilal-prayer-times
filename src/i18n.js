@@ -556,6 +556,7 @@ const ug = {
 const LANGS = {
   en, ug, nl,
   tr: require('./lang/tr'), de: require('./lang/de'), no: require('./lang/no'), fr: require('./lang/fr'), ja: require('./lang/ja'),
+  ar: require('./lang/ar'), ur: require('./lang/ur'), hi: require('./lang/hi'), id: require('./lang/id'), ru: require('./lang/ru'), uz: require('./lang/uz'), es: require('./lang/es'), it: require('./lang/it'), pt: require('./lang/pt'), ko: require('./lang/ko'), fi: require('./lang/fi'), sv: require('./lang/sv'),
 };
 
 function strings(lang) {
