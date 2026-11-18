@@ -63,7 +63,7 @@ function renderWisdom() {
   const d = slot % WISDOM.duas.length;
   showDua(WISDOM.duas[d]);
   $('dua').textContent = L.duas[d];
-  $('duaSrc').textContent = `${L.quran} ${WISDOM.duas[d].ref}`;
+  $('duaSrc').textContent = WISDOM.duas[d].ref ? `${L.quran} ${WISDOM.duas[d].ref}` : WISDOM.duas[d].src;
 }
 
 // ---------- the dua read aloud ----------

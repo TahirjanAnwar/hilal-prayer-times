@@ -448,7 +448,7 @@ function removeWidget() {
 // The widget page reports how tall its card is; the window follows, staying on screen.
 function setWidgetHeight(h) {
   if (!widget || widget.isDestroyed() || !Number.isFinite(h)) return;
-  widgetH = Math.min(520, Math.max(70, Math.round(h)));
+  widgetH = Math.min(720, Math.max(70, Math.round(h)));
   const [x, y] = widget.getPosition();
   const a = screen.getDisplayMatching({ x, y, width: WIDGET_W, height: widgetH }).workArea;
   const top = Math.max(a.y, Math.min(y, a.y + a.height - widgetH - 8));
