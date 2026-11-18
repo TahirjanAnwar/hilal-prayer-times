@@ -191,7 +191,7 @@ body {
    the system font. */
 @font-face {
   font-family: "Hilal Uyghur";
-  src: url("fonts/NotoSansArabic.woff2") format("woff2");
+  src: url("fonts/NotoKufiArabic.woff2") format("woff2");
   font-weight: 400 700;
   font-display: block;
   unicode-range: U+0600-06FF, U+0750-077F, U+200C-200E, U+FB50-FDFF, U+FE70-FEFC;
