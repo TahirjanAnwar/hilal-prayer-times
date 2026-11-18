@@ -77,6 +77,19 @@ let partIndex = -1; // which part is loaded, -1 when stopped
 let frame = 0;
 let noteTimer = null;
 
+// The speed button: slower for reading along, a little faster for who knows the dua. The
+// words stay in step because they follow the position in the recording. The choice is kept.
+const SPEEDS = [0.5, 0.75, 1, 1.25];
+let speed = 1;
+try { const saved = Number(localStorage.getItem('duaSpeed')); if (SPEEDS.includes(saved)) speed = saved; } catch { /* no storage: normal speed */ }
+
+function applySpeed() {
+  audio.defaultPlaybackRate = speed; // load() goes back to the default rate
+  audio.playbackRate = speed;
+  $('duaSpeed').textContent = `${speed}×`;
+  $('duaSpeed').classList.toggle('changed', speed !== 1);
+}
+
 function showDua(d) {
   stopDua();
   dua = d;
@@ -102,6 +115,7 @@ function showDua(d) {
   $('duaTr').replaceChildren(...row);
   wordEls = ar.map((s, i) => [s, tr[i]]);
   $('duaPlay').hidden = !d.parts;
+  $('duaSpeed').hidden = !d.parts;
 }
 
 function mark(index) {
@@ -171,6 +185,12 @@ $('duaPlay').addEventListener('click', () => {
   if (partIndex >= 0) { audio.play().then(() => setPlaying(true)).catch(() => failDua()); return; } // go on
   startPart(0);
 });
+$('duaSpeed').addEventListener('click', () => {
+  speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length];
+  try { localStorage.setItem('duaSpeed', String(speed)); } catch { /* not kept */ }
+  applySpeed();
+});
+applySpeed();
 audio.addEventListener('ended', nextPart);
 audio.addEventListener('error', () => { if (partIndex >= 0) failDua(); });
 api.onPrayer(() => stopDua()); // the adhan comes first

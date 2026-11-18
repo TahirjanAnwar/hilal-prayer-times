@@ -66,7 +66,7 @@ The round button at the top switches between Automatic (Day from sunrise until M
 
 In the two glass looks the main window is see-through: the desktop shows behind it, and Settings → General → **Glass transparency** (0–100%) sets how much. That window has no system title bar (the header has its own minimise and close buttons and moves the window) and cannot be resized. The desktop behind it is not blurred.
 
-The dua on the widget has a play button: it plays the verse from Quran.com (recited by Mishari Rashid al-Afasy, streamed from verses.quran.com, so it needs internet) and lights up each word as it is recited, in the Arabic text and in a line that spells the dua in English letters. The word timings come from the Quran.com API and are stored in `src/wisdom.js`.
+The dua on the widget has a play button: it plays the verse from Quran.com (recited by Mishari Rashid al-Afasy, streamed from verses.quran.com, so it needs internet) and lights up each word as it is recited, in the Arabic text and in a line that spells the dua in English letters. A speed button beside it switches between 0.5×, 0.75×, 1× and 1.25×; the choice is remembered. The word timings come from the Quran.com API and are stored in `src/wisdom.js`.
 
 ## Weather
 

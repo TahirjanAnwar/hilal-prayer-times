@@ -450,14 +450,21 @@ body.widget { display: block; padding: 6px; -webkit-app-region: drag; cursor: de
 .w-hadith { font-size: 13.5px; line-height: 1.5; }
 .w-dua-ar { font-family: "Traditional Arabic", "Amiri", "Scheherazade New", "Segoe UI", "Geeza Pro", serif; font-size: 21px; line-height: 1.7; text-align: center; }
 .w-dua-row { display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px; align-items: center; gap: 4px; margin-inline: -6px; }
-.w-dua-row .w-dua-ar { grid-column: 2; }
+.w-dua-row .w-dua-ar { grid-column: 2; grid-row: 1; }
 .w-play {
-  -webkit-app-region: no-drag; grid-column: 1;
+  -webkit-app-region: no-drag; grid-column: 1; grid-row: 1;
   width: 30px; height: 30px; border-radius: 50%; padding: 0; display: grid; place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.14);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
-.w-play:hover { background: rgba(255, 255, 255, 0.26); }
+.w-play:hover, .w-speed:hover { background: rgba(255, 255, 255, 0.26); }
+.w-speed {
+  -webkit-app-region: no-drag; grid-column: 3; grid-row: 1;
+  width: 30px; height: 22px; border-radius: 11px; padding: 0; display: grid; place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.14);
+  font: 600 9.5px/1 "Segoe UI", system-ui, sans-serif; letter-spacing: -0.2px; color: #fff;
+}
+.w-speed.changed { border-color: #ffe08a; color: #ffe08a; }
 .w-play svg { width: 16px; height: 16px; fill: #fff; }
 .w-play .i-pause, .w-play.playing .i-play { display: none; }
 .w-play.playing .i-pause { display: inline; }
