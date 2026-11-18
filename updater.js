@@ -24,6 +24,69 @@ async function get(url, accept) {
 }
 
 let busy = false;
+let knownLatest = null; // the commit that was last found to match this copy
+
+// Looks at GitHub and works out what an update would involve. Only package.json is
+// downloaded here. With `known`, an unchanged repository is answered after one request.
+async function inspect(shell, known) {
+  const commit = (await (await get(`https://api.github.com/repos/${REPO}/commits/${BRANCH}`, 'application/vnd.github.sha')).text()).trim();
+  if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error('unexpected answer from GitHub');
+  if (known && commit === known) return { status: 'latest', commit };
+  const tree = await (await get(`https://api.github.com/repos/${REPO}/git/trees/${commit}?recursive=1`, 'application/vnd.github+json')).json();
+  const files = (tree.tree || []).filter((e) => e.type === 'blob' && wanted(e.path));
+  if (tree.truncated || !files.some((e) => e.path === 'main.js') || !files.some((e) => e.path === 'package.json')) throw new Error('incomplete file list');
+
+  const local = (p) => path.join(shell.active, ...p.split('/'));
+  const changed = files.filter((e) => {
+    try { return gitSha(fs.readFileSync(local(e.path))) !== e.sha; } catch { return true; }
+  });
+  if (!changed.length) return { status: 'latest', commit };
+
+  const download = async (e) => {
+    if (e.size > MAX_FILE) throw new Error(`${e.path} is too large`);
+    const url = `https://raw.githubusercontent.com/${REPO}/${commit}/${e.path.split('/').map(encodeURIComponent).join('/')}`;
+    const buf = Buffer.from(await (await get(url)).arrayBuffer());
+    if (gitSha(buf) !== e.sha) throw new Error(`${e.path} did not match its checksum`);
+    return buf;
+  };
+
+  // package.json first: it says whether this update fits the installed program.
+  const fetched = new Map();
+  const pkgEntry = changed.find((e) => e.path === 'package.json');
+  let version = null;
+  if (pkgEntry) {
+    const buf = await download(pkgEntry);
+    const pkg = JSON.parse(buf.toString('utf8'));
+    if ((pkg.shell || 1) > shell.version) return { status: 'installer', commit, version: pkg.version };
+    version = pkg.version;
+    fetched.set('package.json', buf);
+    // The installer stores a trimmed package.json, so that file alone differing is not an update.
+    if (changed.length === 1) {
+      let mine = {};
+      try { mine = JSON.parse(fs.readFileSync(local('package.json'), 'utf8')); } catch { /* treat as changed */ }
+      if (mine.version === pkg.version && (mine.shell || 1) === (pkg.shell || 1)) return { status: 'latest', commit };
+    }
+  }
+  return { status: 'available', commit, version, files, changed, fetched, download, local };
+}
+
+// Asks whether an update is waiting, without installing it.
+// Returns { status: 'latest' | 'available' | 'installer' | 'dev' | 'error', commit?, version? }.
+async function check() {
+  const shell = global.hilalShell;
+  if (!app.isPackaged || !shell) return { status: 'dev' };
+  if (busy) return { status: 'error', error: 'busy' };
+  busy = true;
+  try {
+    const r = await inspect(shell, knownLatest);
+    if (r.status === 'latest') knownLatest = r.commit;
+    return { status: r.status, commit: r.commit, version: r.version || null };
+  } catch (e) {
+    return { status: 'error', error: e && e.message ? e.message : String(e) };
+  } finally {
+    busy = false;
+  }
+}
 
 // Returns { status: 'latest' | 'ready' | 'installer' | 'dev' | 'error', version?, error? }.
 // 'ready' means the new files are in place and the app should restart.
@@ -34,43 +97,9 @@ async function run(onProgress = () => {}) {
   busy = true;
   let tmp = null;
   try {
-    const commit = (await (await get(`https://api.github.com/repos/${REPO}/commits/${BRANCH}`, 'application/vnd.github.sha')).text()).trim();
-    if (!/^[0-9a-f]{40}$/.test(commit)) throw new Error('unexpected answer from GitHub');
-    const tree = await (await get(`https://api.github.com/repos/${REPO}/git/trees/${commit}?recursive=1`, 'application/vnd.github+json')).json();
-    const files = (tree.tree || []).filter((e) => e.type === 'blob' && wanted(e.path));
-    if (tree.truncated || !files.some((e) => e.path === 'main.js') || !files.some((e) => e.path === 'package.json')) throw new Error('incomplete file list');
-
-    const local = (p) => path.join(shell.active, ...p.split('/'));
-    const changed = files.filter((e) => {
-      try { return gitSha(fs.readFileSync(local(e.path))) !== e.sha; } catch { return true; }
-    });
-    if (!changed.length) return { status: 'latest' };
-
-    const download = async (e) => {
-      if (e.size > MAX_FILE) throw new Error(`${e.path} is too large`);
-      const url = `https://raw.githubusercontent.com/${REPO}/${commit}/${e.path.split('/').map(encodeURIComponent).join('/')}`;
-      const buf = Buffer.from(await (await get(url)).arrayBuffer());
-      if (gitSha(buf) !== e.sha) throw new Error(`${e.path} did not match its checksum`);
-      return buf;
-    };
-
-    // package.json first: it says whether this update fits the installed program.
-    const fetched = new Map();
-    const pkgEntry = changed.find((e) => e.path === 'package.json');
-    let version = null;
-    if (pkgEntry) {
-      const buf = await download(pkgEntry);
-      const pkg = JSON.parse(buf.toString('utf8'));
-      if ((pkg.shell || 1) > shell.version) return { status: 'installer', version: pkg.version };
-      version = pkg.version;
-      fetched.set('package.json', buf);
-      // The installer stores a trimmed package.json, so that file alone differing is not an update.
-      if (changed.length === 1) {
-        let mine = {};
-        try { mine = JSON.parse(fs.readFileSync(local('package.json'), 'utf8')); } catch { /* treat as changed */ }
-        if (mine.version === pkg.version && (mine.shell || 1) === (pkg.shell || 1)) return { status: 'latest' };
-      }
-    }
+    const r = await inspect(shell);
+    if (r.status !== 'available') return { status: r.status, version: r.version };
+    const { commit, version, files, changed, fetched, download, local } = r;
 
     const root = path.join(app.getPath('userData'), 'updates');
     tmp = path.join(root, `${commit}.tmp`);
@@ -119,4 +148,4 @@ function version() {
   try { return JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8')).version; } catch { return app.getVersion(); }
 }
 
-module.exports = { run, cleanup, version, PAGE };
+module.exports = { run, check, cleanup, version, PAGE };

@@ -58,6 +58,12 @@ Settings → Updates → **Update** downloads the current app files from the `ma
 
 The updater replaces the top-level `*.js` files (except `boot.js`), `package.json`, `src/` and `assets/`. A change to `boot.js`, the npm dependencies, the Electron version or `build/keyblock.exe` needs a new installer: raise `"shell"` in package.json and `SHELL` in boot.js, and older installs will say so. If you fork the project, change `REPO` in `updater.js`.
 
+From version 1.7.0 the app also looks for a new version by itself, half a minute after it starts and then every three hours. When there is one, the main window comes up with a message and a short sound: **Update now** or **Later** (asks again after a day). On a child's computer the update needs the parent PIN. It can be switched off in Settings → Updates.
+
+## Colours and Ramadan counter
+
+The round button at the top switches between Automatic (Day from sunrise until Maghrib, Night after it), Day, Night and Relaxed (warm, low-contrast colours); Settings also offers "Same as the computer". Under the countdown the app shows the days until Ramadan, or the day of Ramadan and the days left. The Islamic dates are calculated (Umm al-Qura calendar) and can differ by a day from a local moon sighting; Settings → Calculation has a correction of up to two days.
+
 ## Family mode (child lock)
 
 Set up in Settings → Family. One computer is the parent's, the others are children's; all use the same parent PIN and the same home network.

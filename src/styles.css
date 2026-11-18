@@ -1,3 +1,5 @@
+/* Three looks: Night (the default), Day and Relaxed. The page sets data-theme; until it
+   does (and on the lock screen) the light/dark setting of the computer decides. */
 :root {
   --bg1: #0f2238;
   --bg2: #173655;
@@ -9,10 +11,11 @@
   --accent: #7cc0f5;
   --accent-ink: #0d2136;
   --danger: #f2a7a0;
+  --sun: #f6c667;
 }
 
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme]) {
     --bg1: #eaf3fc;
     --bg2: #d6e8f8;
     --card: rgba(255, 255, 255, 0.75);
@@ -23,7 +26,37 @@
     --accent: #2f7fc8;
     --accent-ink: #ffffff;
     --danger: #b3463c;
+    --sun: #e2930f;
   }
+}
+
+:root[data-theme="day"] {
+  --bg1: #eaf3fc;
+  --bg2: #d6e8f8;
+  --card: rgba(255, 255, 255, 0.75);
+  --card-strong: rgba(58, 138, 214, 0.16);
+  --line: rgba(20, 60, 100, 0.12);
+  --text: #14304b;
+  --muted: #5d7892;
+  --accent: #2f7fc8;
+  --accent-ink: #ffffff;
+  --danger: #b3463c;
+  --sun: #e2930f;
+}
+
+/* Relaxed: warm paper and sage green, lower contrast, easy on the eyes. */
+:root[data-theme="relaxed"] {
+  --bg1: #f4eee3;
+  --bg2: #eae0d0;
+  --card: rgba(255, 253, 248, 0.62);
+  --card-strong: rgba(122, 143, 106, 0.2);
+  --line: rgba(92, 74, 48, 0.14);
+  --text: #4c4439;
+  --muted: #877b6a;
+  --accent: #5c7a54;
+  --accent-ink: #ffffff;
+  --danger: #a8574b;
+  --sun: #cf9a45;
 }
 
 * { box-sizing: border-box; }
@@ -52,7 +85,14 @@ button { cursor: pointer; }
 /* header */
 .top { display: flex; align-items: center; gap: 12px; padding: 16px 18px 10px; }
 .logo { width: 44px; height: 44px; border-radius: 12px; }
-.top-text { min-width: 0; }
+.top-text { min-width: 0; flex: 1; }
+.theme-btn {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line);
+  background: none; display: grid; place-items: center; padding: 0;
+}
+.theme-btn:hover { border-color: var(--accent); }
+.theme-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.theme-btn svg .fill { fill: var(--accent); stroke: none; }
 .app-name { font-weight: 600; font-size: 16px; }
 .loc-btn {
   background: none; border: 0; padding: 0; color: var(--muted);
@@ -76,7 +116,7 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .view::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
 
 /* prayer times */
-.hero { text-align: center; padding: 6px 0 12px; }
+.hero { text-align: center; padding: 4px 0 8px; }
 .hero-label { color: var(--muted); font-size: 13px; letter-spacing: 0.04em; }
 .hero-name { font-size: 26px; font-weight: 600; margin-top: 2px; }
 .hero-count {
@@ -85,13 +125,28 @@ main { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 }
 .hero-time { color: var(--muted); font-variant-numeric: tabular-nums; }
 
-.rows { display: flex; flex-direction: column; gap: 6px; }
+.ramadan {
+  display: flex; align-items: center; justify-content: center; gap: 7px; width: fit-content; max-width: 100%;
+  margin: 0 auto 10px; padding: 4px 14px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--line); font-size: 13.5px; font-variant-numeric: tabular-nums;
+}
+.ramadan.on { background: var(--card-strong); border-color: var(--accent); }
+.ramadan svg { width: 14px; height: 14px; flex-shrink: 0; fill: var(--sun); }
+
+.rows { display: flex; flex-direction: column; gap: 5px; }
 .row {
-  display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px;
-  padding: 8px 14px; border-radius: 14px; background: var(--card); border: 1px solid transparent;
+  display: grid; grid-template-columns: minmax(0, 1fr) 64px auto auto; align-items: center; gap: 12px;
+  padding: 5px 14px; border-radius: 14px; background: var(--card); border: 1px solid transparent;
 }
 .row.next { background: var(--card-strong); border-color: var(--accent); }
-.row.past .row-name, .row.past .row-time { opacity: 0.6; }
+.row.past .row-name, .row.past .row-time, .row.past .row-icon { opacity: 0.6; }
+.row-icon { height: 40px; line-height: 0; direction: ltr; }
+.row-icon svg { width: 64px; height: 40px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.row-icon .sky { stroke: var(--muted); stroke-width: 1.3; opacity: 0.75; }
+.row-icon .sun { fill: var(--sun); }
+.row-icon .ray { stroke: var(--sun); stroke-width: 1.5; }
+.row-icon .moon { fill: var(--accent); }
+.row.minor .row-icon { height: 0; }
 .row.minor { padding-block: 3px; background: none; }
 .row.minor .row-name, .row.minor .row-time { font-size: 13.5px; color: var(--muted); font-weight: 400; }
 .row-name { font-weight: 600; }
@@ -238,6 +293,7 @@ body.widget { display: block; padding: 6px; -webkit-app-region: drag; cursor: de
 .w-label { color: rgba(255, 255, 255, 0.76); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .w-name { font-size: 21px; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .w-count { font-size: 28px; font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.w-ram { padding: 7px 18px 8px; border-top: 1px solid rgba(255, 255, 255, 0.16); font-size: 12.5px; text-align: center; color: rgba(255, 255, 255, 0.9); font-variant-numeric: tabular-nums; }
 .w-block { padding: 12px 18px 13px; border-top: 1px solid rgba(255, 255, 255, 0.16); }
 .w-hadith { font-size: 13.5px; line-height: 1.5; }
 .w-dua-ar { font-family: "Traditional Arabic", "Amiri", "Scheherazade New", "Segoe UI", "Geeza Pro", serif; font-size: 21px; line-height: 1.7; text-align: center; }

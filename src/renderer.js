@@ -1,4 +1,4 @@
-/* global api */
+/* global api, HIJRI */
 const $ = (id) => document.getElementById(id);
 
 const METHOD_NAMES = {
@@ -17,6 +17,38 @@ const METHOD_NAMES = {
 };
 const LOCALES = { en: 'en-GB', nl: 'nl-NL', ug: 'ug', tr: 'tr-TR', de: 'de-DE', no: 'nb-NO', fr: 'fr-FR', ja: 'ja-JP' };
 const BELL_SVG = '<svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/><path class="slash" d="M4 4l16 16"/></svg>';
+
+// Where the sun is at each prayer: a small sky with the sun on its way from sunrise (right)
+// over noon to sunset (left), and the moon under the horizon for Isha.
+const SKY = '<path class="sky" d="M10 24A22 15 0 0 1 54 24"/><path class="sky" d="M5 24H59"/>';
+function sunIcon(cx, cy, half) {
+  let rays = '';
+  for (let a = 0; a < 360; a += 45) {
+    if (half && (a === 0 || a === 180 || a < 180)) continue; // only the rays above the horizon
+    const rad = (a * Math.PI) / 180;
+    const p = (d) => `${(cx + Math.cos(rad) * d).toFixed(1)} ${(cy + Math.sin(rad) * d).toFixed(1)}`;
+    rays += `M${p(6.2)}L${p(8.6)}`;
+  }
+  const disc = half ? `<path class="sun" d="M${cx - 4} ${cy}A4 4 0 0 1 ${cx + 4} ${cy}z"/>` : `<circle class="sun" cx="${cx}" cy="${cy}" r="4"/>`;
+  return `${disc}<path class="ray" d="${rays}"/>`;
+}
+const PRAYER_ICONS = {
+  fajr: SKY + sunIcon(54, 24, true),
+  dhuhr: SKY + sunIcon(32, 9, false),
+  juma: SKY + sunIcon(32, 9, false),
+  asr: SKY + sunIcon(16.5, 13.5, false),
+  maghrib: SKY + sunIcon(10, 24, true),
+  isha: SKY + '<path class="moon" d="M15 27.5A5 5 0 1 0 19.6 34.3 4.3 4.3 0 0 1 15 27.5z"/>',
+};
+const THEME_ICONS = {
+  auto: '<circle cx="12" cy="12" r="8"/><path class="fill" d="M12 4a8 8 0 0 1 0 16z"/>',
+  system: '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  day: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
+  night: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+  relaxed: '<path d="M5 19c0-8 5-13 14-14 0 9-5 14-14 14zM5 19l8-8"/>',
+};
+const THEME_KEYS = { auto: 'themeAuto', system: 'themeSystem', day: 'themeDay', night: 'themeNight', relaxed: 'themeRelaxed' };
+const THEME_CYCLE = ['auto', 'day', 'night', 'relaxed'];
 
 let state = null;
 let S = {};
@@ -53,19 +85,25 @@ const EN_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday
 function fmtDate(hijri) {
   const lang = state.settings.language;
   const opts = { timeZone: times.tz, numberingSystem: 'latn' };
-  if (hijri) opts.calendar = 'islamic-umalqura';
+  let when = new Date();
+  if (hijri) {
+    // The Islamic date is counted in whole days, with the correction from Settings.
+    opts.calendar = 'islamic-umalqura';
+    opts.timeZone = 'UTC';
+    when = new Date(HIJRI.noon(times.tz, state.settings.hijriAdjust));
+  }
   try {
     if (lang === 'ug') {
       // The browser engine has no Uyghur date names, so build the text here.
       const f = new Intl.DateTimeFormat('en-US', { ...opts, day: 'numeric', month: 'numeric', year: 'numeric', weekday: 'long' });
       const p = {};
-      for (const part of f.formatToParts(new Date())) p[part.type] = part.value;
+      for (const part of f.formatToParts(when)) p[part.type] = part.value;
       if (hijri) return `ھىجرىيە ${p.year}-يىلى ${UG_HIJRI[p.month - 1]} ${p.day}`;
       return `${p.year}-يىلى ${p.month}-ئاينىڭ ${p.day}-كۈنى، ${UG_DAYS[EN_DAYS.indexOf(p.weekday)]}`;
     }
     const full = { ...opts, day: 'numeric', month: 'long', year: 'numeric' };
     if (!hijri) full.weekday = 'long';
-    return new Intl.DateTimeFormat(LOCALES[lang] || 'en-GB', full).format(new Date());
+    return new Intl.DateTimeFormat(LOCALES[lang] || 'en-GB', full).format(when);
   } catch { return ''; }
 }
 
@@ -77,6 +115,40 @@ function applyStrings() {
   document.title = S.appName;
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+}
+
+// ---------- colours ----------
+// Day, Night or Relaxed. "Automatic" is Day from sunrise until Maghrib and Night after it;
+// "Same as the computer" follows the light/dark setting of Windows or macOS.
+function applyTheme() {
+  const mode = state.settings.theme;
+  let theme = mode;
+  if (mode === 'auto' || mode === 'system') {
+    const now = Date.now();
+    const at = (id) => { const e = times && times.today.find((x) => x.id === id); return e ? e.time : null; };
+    if (mode === 'auto' && at('sunrise') && at('maghrib')) theme = now >= at('sunrise') && now < at('maghrib') ? 'day' : 'night';
+    else theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'day' : 'night';
+  }
+  if (document.documentElement.dataset.theme !== theme) document.documentElement.dataset.theme = theme;
+  const btn = $('themeBtn');
+  if (btn.dataset.mode !== mode + S.dir + state.settings.language) {
+    btn.dataset.mode = mode + S.dir + state.settings.language;
+    btn.innerHTML = `<svg viewBox="0 0 24 24">${THEME_ICONS[mode] || THEME_ICONS.auto}</svg>`;
+    btn.title = `${t('theme')}: ${t(THEME_KEYS[mode] || 'themeAuto')}`;
+  }
+}
+$('themeBtn').addEventListener('click', () => {
+  const next = THEME_CYCLE[(THEME_CYCLE.indexOf(state.settings.theme) + 1) % THEME_CYCLE.length];
+  save({ theme: next });
+});
+window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (state) applyTheme(); });
+
+function renderRamadan() {
+  if (!times) { $('ramadan').hidden = true; return; }
+  const r = HIJRI.ramadan(times.tz, state.settings.hijriAdjust);
+  $('ramadan').hidden = false;
+  $('ramadan').classList.toggle('on', r.inRamadan);
+  $('ramadanText').textContent = r.inRamadan ? t('ramadanDay', { d: r.day, n: r.left }) : t('ramadanIn', { n: r.until });
 }
 
 // ---------- prayer times view ----------
@@ -93,6 +165,8 @@ async function loadTimes() {
 
 function renderTimes() {
   $('locLabel').textContent = locationText();
+  applyTheme();
+  renderRamadan();
   if (!times) {
     $('heroName').textContent = '—';
     $('heroCount').textContent = '--:--:--';
@@ -152,6 +226,10 @@ function buildRows() {
     rel.dir = S.dir;
     name.append(rel);
 
+    const icon = document.createElement('div');
+    icon.className = 'row-icon';
+    if (PRAYER_ICONS[e.id]) icon.innerHTML = `<svg viewBox="0 0 64 40" aria-hidden="true">${PRAYER_ICONS[e.id]}</svg>`;
+
     const clock = document.createElement('div');
     clock.className = 'row-time';
     clock.dir = 'ltr';
@@ -172,7 +250,7 @@ function buildRows() {
         setState(await api.setSettings({ adhanFor: { [e.id]: !on } }));
       });
     }
-    el.append(name, clock, last);
+    el.append(name, icon, clock, last);
     return el;
   }));
 }
@@ -241,6 +319,9 @@ function fillSettings() {
   $('madhab').value = s.madhab;
   $('jumaTime').value = s.jumaTime.padStart(5, '0');
   $('hour12').value = s.hour12 ? '12' : '24';
+  $('hijriAdjust').value = String(s.hijriAdjust);
+  $('theme').value = s.theme;
+  $('updateCheck').checked = s.updateCheck;
   $('startup').checked = s.startup;
   $('widget').checked = s.widget;
   $('widgetTop').checked = s.widgetTop;
@@ -266,6 +347,9 @@ $('method').addEventListener('change', (e) => save({ method: e.target.value }));
 $('madhab').addEventListener('change', (e) => save({ madhab: e.target.value }));
 $('jumaTime').addEventListener('change', (e) => e.target.value && save({ jumaTime: e.target.value }));
 $('hour12').addEventListener('change', (e) => save({ hour12: e.target.value === '12' }));
+$('hijriAdjust').addEventListener('change', (e) => save({ hijriAdjust: Number(e.target.value) }));
+$('theme').addEventListener('change', (e) => save({ theme: e.target.value }));
+$('updateCheck').addEventListener('change', (e) => save({ updateCheck: e.target.checked }));
 $('startup').addEventListener('change', (e) => save({ startup: e.target.checked }));
 $('widget').addEventListener('change', (e) => save({ widget: e.target.checked }));
 $('widgetTop').addEventListener('change', (e) => save({ widgetTop: e.target.checked }));
@@ -336,7 +420,70 @@ $('updBtn').addEventListener('click', async () => {
   else say(t('updFailed', { e: res.error || '' }));
 });
 $('updPage').addEventListener('click', () => api.updatePage());
-api.onUpdateProgress(({ done, total }) => { $('updMsg').textContent = t('updDownloading', { n: done, m: total }); });
+api.onUpdateProgress(({ done, total }) => {
+  const text = t('updDownloading', { n: done, m: total });
+  $('updMsg').textContent = text;
+  if (!$('updModal').hidden) $('updNewMsg').textContent = text;
+});
+
+// The app found a new version by itself: a message with a short sound.
+let updInfo = null;
+function chime() {
+  try {
+    const ctx = new AudioContext();
+    const loud = Math.max(0.15, state.settings.volume) * 0.35;
+    [[659.25, 0], [880, 0.17], [1318.5, 0.34]].forEach(([freq, at]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const start = ctx.currentTime + at;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(loud, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.9);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 1);
+    });
+    setTimeout(() => ctx.close(), 2500);
+  } catch { /* no sound device */ }
+}
+function renderUpdModal() {
+  if (!updInfo) return;
+  const installer = updInfo.status === 'installer';
+  $('updNewText').textContent = installer ? t('updInstaller') : updInfo.version ? t('updNewBody', { v: updInfo.version }) : t('updNewBodyNoV');
+  $('updNow').textContent = installer ? t('updOpenPage') : t('updNow');
+}
+api.onUpdateAvailable((info) => {
+  if (!state) return;
+  updInfo = info;
+  $('updNewMsg').textContent = '';
+  $('updNow').disabled = false;
+  $('updLater').disabled = false;
+  renderUpdModal();
+  $('updModal').hidden = false;
+  chime();
+});
+$('updLater').addEventListener('click', () => { $('updModal').hidden = true; updInfo = null; });
+$('updNow').addEventListener('click', async () => {
+  if (updInfo.status === 'installer') { api.updatePage(); $('updModal').hidden = true; updInfo = null; return; }
+  // On a child's computer an update needs the parent PIN, like the rest of Settings.
+  if (state.family.role === 'child' && !state.family.adminOk) {
+    $('updModal').hidden = true;
+    const ok = await askPin(t('gateChild'));
+    $('updModal').hidden = false;
+    if (!ok) return;
+  }
+  $('updNow').disabled = true;
+  $('updLater').disabled = true;
+  $('updNewMsg').textContent = t('updChecking');
+  const res = await api.updateRun();
+  if (res.status === 'ready') { $('updNewMsg').textContent = t('updRestart'); return; } // the app restarts by itself
+  if (res.status === 'latest') { $('updModal').hidden = true; updInfo = null; return; }
+  $('updNow').disabled = false;
+  $('updLater').disabled = false;
+  $('updNewMsg').textContent = res.status === 'installer' ? t('updInstaller') : res.status === 'dev' ? t('updDev') : t('updFailed', { e: res.error || '' });
+});
 
 // ---------- AI chat ----------
 let chat = []; // { role, content, error? }
@@ -690,7 +837,9 @@ function setState(next) {
   fillSettings();
   renderChat();
   renderFamily();
+  renderUpdModal();
   syncAdhanUi();
+  applyTheme();
   loadTimes();
 }
 api.onState(setState);

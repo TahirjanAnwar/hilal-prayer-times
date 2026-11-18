@@ -1,4 +1,4 @@
-/* global api, WISDOM */
+/* global api, WISDOM, HIJRI */
 // Desktop widget: the next prayer with a countdown, and below it a hadith and a short dua
 // that change once a day (or as often as chosen in Settings).
 const $ = (id) => document.getElementById(id);
@@ -27,6 +27,17 @@ function renderPrayer() {
   }).format(new Date(next.time));
   const s = Math.max(0, Math.ceil((next.time - now) / 1000));
   $('count').textContent = `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+}
+
+// One line with the days until Ramadan, or the day of Ramadan and the days left.
+function renderRamadan() {
+  if (!times) { $('ram').hidden = true; return; }
+  const r = HIJRI.ramadan(times.tz, state.settings.hijriAdjust);
+  const S = state.strings;
+  $('ram').hidden = false;
+  $('ram').textContent = r.inRamadan
+    ? S.ramadanDay.replace('{d}', r.day).replace('{n}', r.left)
+    : S.ramadanIn.replace('{n}', r.until);
 }
 
 // Which hadith and dua to show now. The slot number grows by one every refresh period,
@@ -58,6 +69,7 @@ function renderWisdom() {
 function render() {
   if (!state) return;
   renderPrayer();
+  renderRamadan();
   renderWisdom();
   // The window follows the height of the card, so longer texts are never cut off.
   const h = Math.ceil($('card').getBoundingClientRect().height) + 12;

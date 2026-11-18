@@ -10,6 +10,7 @@ const updater = require('./updater');
 
 const START_HIDDEN = process.argv.includes('--hidden');
 const ADHAN_IDS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'juma'];
+const THEMES = ['auto', 'system', 'day', 'night', 'relaxed'];
 
 // Let the adhan play without a click, even when the window is hidden.
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
@@ -46,6 +47,9 @@ const DEFAULTS = {
   widgetPos: null, // { x, y } after the user dragged it
   widgetHadith: true, // show a hadith and a dua on the widget
   hadithHours: 24, // how often they change: 1, 3, 6, 12 or 24 hours
+  theme: 'auto', // 'auto' (day after sunrise, night after Maghrib) | 'system' | 'day' | 'night' | 'relaxed'
+  hijriAdjust: 0, // days to shift the calculated Islamic date, -2..2, to match the local moon sighting
+  updateCheck: true, // look for a new version by itself and tell the user
   apiKeyEnc: null,
   firstRunDone: false,
 };
@@ -303,7 +307,7 @@ function iconPath() {
 function createWindow() {
   win = new BrowserWindow({
     width: 440,
-    height: 800,
+    height: 830,
     minWidth: 380,
     minHeight: 600,
     show: false,
@@ -456,6 +460,36 @@ function createTray() {
   refreshTray();
 }
 
+// ---------- update check ----------
+// The app looks for a new version shortly after it starts and then every few hours. When
+// there is one, the main window comes up with a message and a short sound. "Later" keeps
+// that version quiet for a day.
+const UPDATE_EVERY = 3 * 3600000;
+const UPDATE_SNOOZE = 24 * 3600000;
+let updateTold = { commit: null, until: 0 };
+
+function tellUpdate(info) {
+  if (!win || win.isDestroyed()) createWindow();
+  const w = win;
+  const send = () => {
+    if (w.isDestroyed()) return;
+    if (!w.isVisible()) w.showInactive(); // comes up without taking the keyboard away
+    w.flashFrame(true);
+    w.once('focus', () => w.flashFrame(false));
+    w.webContents.send('update:available', info);
+  };
+  if (w.webContents.isLoading()) w.webContents.once('did-finish-load', send); else send();
+}
+
+async function checkUpdates() {
+  if (!settings.updateCheck) return;
+  const r = await updater.check();
+  if (r.status !== 'available' && r.status !== 'installer') return;
+  if (updateTold.commit === r.commit && Date.now() < updateTold.until) return;
+  updateTold = { commit: r.commit, until: Date.now() + UPDATE_SNOOZE };
+  tellUpdate({ status: r.status, version: r.version });
+}
+
 // ---------- IPC ----------
 function registerIpc() {
   ipcMain.handle('state:get', () => publicState());
@@ -466,7 +500,7 @@ function registerIpc() {
 
   ipcMain.handle('settings:set', (_e, patch) => {
     let p = patch || {};
-    if (family.guarded()) p = { adhanFor: p.adhanFor }; // without the PIN only the adhan bells can be changed
+    if (family.guarded()) p = { adhanFor: p.adhanFor, theme: p.theme }; // without the PIN only the adhan bells and the colours can be changed
     if (i18n.LANG_CODES.includes(p.language)) settings.language = p.language;
     if (p.method === 'auto' || prayer.METHODS.includes(p.method)) settings.method = p.method;
     if (p.madhab === 'standard' || p.madhab === 'hanafi') settings.madhab = p.madhab;
@@ -486,6 +520,9 @@ function registerIpc() {
     if (typeof p.widgetTop === 'boolean') settings.widgetTop = p.widgetTop;
     if (typeof p.widgetHadith === 'boolean') settings.widgetHadith = p.widgetHadith;
     if ([1, 3, 6, 12, 24].includes(p.hadithHours)) settings.hadithHours = p.hadithHours;
+    if (THEMES.includes(p.theme)) settings.theme = p.theme;
+    if (Number.isInteger(p.hijriAdjust) && Math.abs(p.hijriAdjust) <= 2) settings.hijriAdjust = p.hijriAdjust;
+    if (typeof p.updateCheck === 'boolean') settings.updateCheck = p.updateCheck;
     if ('widget' in p || 'widgetTop' in p) syncWidget();
     saveSettings();
     broadcast();
@@ -598,4 +635,8 @@ app.whenReady().then(async () => {
   setInterval(refreshTray, 60000);
   if (settings.locationMode === 'auto') refreshAutoLocation();
   setTimeout(updater.cleanup, 5000); // the app started fine: keep this version, remove older downloads
+  setTimeout(checkUpdates, 30000);
+  setInterval(checkUpdates, UPDATE_EVERY);
+  // For trying the update message while running from source code.
+  if (!app.isPackaged && process.env.HILAL_TEST_UPDATE) setTimeout(() => tellUpdate({ status: process.env.HILAL_TEST_UPDATE, version: '9.9.9' }), 4000);
 });

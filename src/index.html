@@ -14,6 +14,7 @@
       <div class="app-name" data-i18n="appName"></div>
       <button class="loc-btn" id="locBtn" type="button"><span id="locLabel"></span></button>
     </div>
+    <button class="theme-btn" id="themeBtn" type="button"></button>
   </header>
 
   <div class="banner" id="banner" hidden>
@@ -29,6 +30,10 @@
         <div class="hero-name" id="heroName">—</div>
         <div class="hero-count" id="heroCount" dir="ltr">--:--:--</div>
         <div class="hero-time" id="heroTime" dir="ltr"></div>
+      </div>
+      <div class="ramadan" id="ramadan" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>
+        <span id="ramadanText"></span>
       </div>
       <div class="rows" id="rows"></div>
       <div class="foot">
@@ -98,6 +103,16 @@
           </select>
         </label>
         <label class="line"><span data-i18n="jumaTime"></span><input type="time" id="jumaTime"></label>
+        <label class="line"><span data-i18n="hijriAdjust"></span>
+          <select id="hijriAdjust" dir="ltr">
+            <option value="-2">-2</option>
+            <option value="-1">-1</option>
+            <option value="0">0</option>
+            <option value="1">+1</option>
+            <option value="2">+2</option>
+          </select>
+        </label>
+        <p class="muted small" data-i18n="hijriAdjustHelp"></p>
         <label class="line"><span data-i18n="timeFormat"></span>
           <select id="hour12">
             <option value="24" data-i18n="h24"></option>
@@ -108,6 +123,15 @@
 
       <div class="card">
         <h2 data-i18n="general"></h2>
+        <label class="line"><span data-i18n="theme"></span>
+          <select id="theme">
+            <option value="auto" data-i18n="themeAuto"></option>
+            <option value="system" data-i18n="themeSystem"></option>
+            <option value="day" data-i18n="themeDay"></option>
+            <option value="night" data-i18n="themeNight"></option>
+            <option value="relaxed" data-i18n="themeRelaxed"></option>
+          </select>
+        </label>
         <label class="line"><span data-i18n="startup"></span><input type="checkbox" id="startup"></label>
         <label class="line"><span data-i18n="widgetShow"></span><input type="checkbox" id="widget"></label>
         <label class="line"><span data-i18n="widgetTop"></span><input type="checkbox" id="widgetTop"></label>
@@ -118,6 +142,7 @@
       <div class="card">
         <h2 data-i18n="updatesSection"></h2>
         <div class="line"><span id="updVersion"></span><button type="button" class="primary" id="updBtn" data-i18n="updateBtn"></button></div>
+        <label class="line"><span data-i18n="updAuto"></span><input type="checkbox" id="updateCheck"></label>
         <p class="muted small" id="updMsg"></p>
         <button type="button" class="ghost wide" id="updPage" data-i18n="updOpenPage" hidden></button>
       </div>
@@ -218,6 +243,18 @@
     </form>
   </div>
 
+  <div class="modal" id="updModal" hidden>
+    <div class="card stack">
+      <h2 data-i18n="updNewTitle"></h2>
+      <div id="updNewText"></div>
+      <p class="muted small" id="updNewMsg"></p>
+      <div class="btns">
+        <button type="button" class="ghost" id="updLater" data-i18n="later"></button>
+        <button type="button" class="primary" id="updNow"></button>
+      </div>
+    </div>
+  </div>
+
   <nav class="tabs">
     <button type="button" class="tab active" data-view="times" data-i18n="tabTimes"></button>
     <button type="button" class="tab" data-view="ai" data-i18n="tabAi"></button>
@@ -226,6 +263,7 @@
   </nav>
 
   <audio id="adhan" preload="none"></audio>
+  <script src="hijri.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>
