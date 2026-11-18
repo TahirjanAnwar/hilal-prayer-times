@@ -5,6 +5,12 @@
 // The texts give the meaning in simple words; they are not word-for-word translations.
 // kids: true marks the ones chosen for children (parents, helping at home, manners).
 // The duas are verses of the Quran, with the Arabic text and the verse number.
+// tr: the dua in English letters, one piece per Arabic word ("-" joins the next piece with
+//     the hyphen, "+" joins it directly).
+// parts: where the recitation is. url is the verse's file on verses.quran.com (Mishari
+//     Rashid al-Afasy), from/to the part of it that is the dua (milliseconds; to: null means
+//     to the end of the verse), words the start and end of every word. The timings are
+//     Quran.com's own (api.quran.com, recitation 7).
 //
 // Adding one: add an entry to `hadiths` AND one line at the same position in every language.
 window.WISDOM = {
@@ -31,13 +37,41 @@ window.WISDOM = {
     { src: 'bm', kids: false }, // 20 make things easy
   ],
   duas: [
-    { ar: 'رَبِّ زِدْنِي عِلْمًا', ref: '20:114' },
-    { ar: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ', ref: '2:201' },
-    { ar: 'رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا', ref: '17:24' },
-    { ar: 'رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِنْ ذُرِّيَّتِي', ref: '14:40' },
-    { ar: 'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي', ref: '20:25-26' },
-    { ar: 'رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنْتَ السَّمِيعُ الْعَلِيمُ', ref: '2:127' },
-    { ar: 'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ', ref: '3:173' },
+    {
+      ar: 'رَبِّ زِدْنِي عِلْمًا', ref: '20:114',
+      tr: ["Rabbi","zidnee","'ilma"],
+      parts: [{"url":"Alafasy/mp3/020114.mp3","from":14340,"to":null,"words":[[14340,14970],[14980,15970],[15980,17270]]}],
+    },
+    {
+      ar: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ', ref: '2:201',
+      tr: ["Rabbana","atina","fid-","dunya","hasanatan","wa fil-","akhirati","hasanatan","wa qina","'adhaban-","nar"],
+      parts: [{"url":"Alafasy/mp3/002201.mp3","from":3300,"to":null,"words":[[3300,3890],[3900,6320],[6330,6550],[6560,7420],[7430,8330],[8340,9270],[9280,10300],[10310,11140],[11150,12490],[12500,13370],[13380,15630]]}],
+    },
+    {
+      ar: 'رَبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا', ref: '17:24',
+      tr: ["Rabbir-","hamhuma","kama","rabbayanee","sagheera"],
+      parts: [{"url":"Alafasy/mp3/017024.mp3","from":5330,"to":null,"words":[[5330,6100],[6110,7430],[7440,8130],[8140,9580],[9590,10930]]}],
+    },
+    {
+      ar: 'رَبِّ اجْعَلْنِي مُقِيمَ الصَّلَاةِ وَمِنْ ذُرِّيَّتِي', ref: '14:40',
+      tr: ["Rabbij-","'alnee","muqeemas-","salati","wa min","dhurriyyatee"],
+      parts: [{"url":"Alafasy/mp3/014040.mp3","from":70,"to":7470,"words":[[70,710],[720,1850],[1860,2710],[2720,3940],[3950,5220],[5230,7470]]}],
+    },
+    {
+      ar: 'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي', ref: '20:25-26',
+      tr: ["Rabbish-","rah","lee","sadree,","wa yassir","lee","amree"],
+      parts: [{"url":"Alafasy/mp3/020025.mp3","from":740,"to":null,"words":[[740,1340],[1350,2030],[2040,2450],[2460,3520]]},{"url":"Alafasy/mp3/020026.mp3","from":100,"to":null,"words":[[100,940],[950,3030],[3040,3800]]}],
+    },
+    {
+      ar: 'رَبَّنَا تَقَبَّلْ مِنَّا إِنَّكَ أَنْتَ السَّمِيعُ الْعَلِيمُ', ref: '2:127',
+      tr: ["Rabbana","taqabbal","minna,","innaka","antas-","Samee'ul-","'Aleem"],
+      parts: [{"url":"Alafasy/mp3/002127.mp3","from":6960,"to":null,"words":[[6960,7890],[7900,8970],[8980,11080],[11090,12530],[12540,13910],[13920,14920],[14930,17300]]}],
+    },
+    {
+      ar: 'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ', ref: '3:173',
+      tr: ["Hasbuna+","llahu","wa ni'mal-","wakeel"],
+      parts: [{"url":"Alafasy/mp3/003173.mp3","from":18160,"to":null,"words":[[18160,19050],[19060,19990],[20000,20790],[20800,23910]]}],
+    },
   ],
   lang: {
     en: {

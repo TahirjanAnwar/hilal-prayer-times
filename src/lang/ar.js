@@ -182,4 +182,5 @@ module.exports = {
   themeGlassDark: "زجاج داكن",
   themeGlassLight: "زجاج فاتح",
   glassTransparency: "شفافية الزجاج",
+  duaOffline: "التلاوة تحتاج إلى اتصال بالإنترنت.",
 };

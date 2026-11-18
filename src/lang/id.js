@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Kaca gelap",
   themeGlassLight: "Kaca terang",
   glassTransparency: "Transparansi kaca",
+  duaOffline: "Bacaan memerlukan koneksi internet.",
 };

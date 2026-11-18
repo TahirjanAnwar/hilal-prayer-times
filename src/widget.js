@@ -61,10 +61,119 @@ function renderWisdom() {
   $('hadithSrc').textContent = [h.src.includes('b') ? L.b : null, h.src.includes('m') ? L.m : null].filter(Boolean).join(' · ');
 
   const d = slot % WISDOM.duas.length;
-  $('duaAr').textContent = WISDOM.duas[d].ar;
+  showDua(WISDOM.duas[d]);
   $('dua').textContent = L.duas[d];
   $('duaSrc').textContent = `${L.quran} ${WISDOM.duas[d].ref}`;
 }
+
+// ---------- the dua read aloud ----------
+// The play button plays the verse from Quran.com (only the part that is the dua) and
+// lights up each word, in Arabic and in English letters, while it is being recited.
+const AUDIO_BASE = 'https://verses.quran.com/';
+const audio = $('duaAudio');
+let dua = null; // the dua on show
+let wordEls = []; // per word: [Arabic span, English-letter span]
+let partIndex = -1; // which part is loaded, -1 when stopped
+let frame = 0;
+let noteTimer = null;
+
+function showDua(d) {
+  stopDua();
+  dua = d;
+  const ar = d.ar.split(' ').map((text) => {
+    const s = document.createElement('span');
+    s.className = 'w-word';
+    s.textContent = text;
+    return s;
+  });
+  $('duaAr').replaceChildren(...ar.flatMap((s, i) => (i ? [' ', s] : [s])));
+  const tr = [];
+  const row = [];
+  d.tr.forEach((piece) => {
+    const joinHyphen = piece.endsWith('-');
+    const joinPlain = piece.endsWith('+');
+    const s = document.createElement('span');
+    s.className = 'w-word';
+    s.textContent = joinPlain ? piece.slice(0, -1) : piece;
+    tr.push(s);
+    row.push(s);
+    if (!joinHyphen && !joinPlain) row.push(' ');
+  });
+  $('duaTr').replaceChildren(...row);
+  wordEls = ar.map((s, i) => [s, tr[i]]);
+  $('duaPlay').hidden = !d.parts;
+}
+
+function mark(index) {
+  wordEls.forEach((pair, i) => pair.forEach((el) => el && el.classList.toggle('on', i === index)));
+}
+
+function setPlaying(on) {
+  $('duaPlay').classList.toggle('playing', on);
+  $('duaPlay').setAttribute('aria-label', on ? 'Pause' : 'Play');
+  cancelAnimationFrame(frame);
+  if (on) frame = requestAnimationFrame(follow);
+}
+
+function stopDua() {
+  partIndex = -1;
+  audio.pause();
+  audio.removeAttribute('src');
+  setPlaying(false);
+  mark(-1);
+}
+
+function startPart(i) {
+  const part = dua.parts[i];
+  partIndex = i;
+  audio.src = AUDIO_BASE + part.url;
+  audio.volume = state.settings.volume;
+  const begin = () => {
+    if (partIndex !== i) return;
+    audio.currentTime = part.from / 1000;
+    audio.play().then(() => setPlaying(true)).catch(() => failDua());
+  };
+  if (audio.readyState >= 1) begin(); else audio.addEventListener('loadedmetadata', begin, { once: true });
+  audio.load();
+}
+
+function nextPart() {
+  if (partIndex >= 0 && partIndex + 1 < dua.parts.length) startPart(partIndex + 1); else stopDua();
+}
+
+// Runs while the recitation plays: finds the word being recited and stops at the end of the dua.
+function follow() {
+  if (partIndex < 0 || audio.paused) return;
+  const part = dua.parts[partIndex];
+  const t = audio.currentTime * 1000;
+  if (part.to !== null && t >= part.to + 120) { nextPart(); return; }
+  // let the last word of a cut clip fade instead of stopping dead
+  audio.volume = part.to !== null && t > part.to ? state.settings.volume * Math.max(0, 1 - (t - part.to) / 120) : state.settings.volume;
+  const before = dua.parts.slice(0, partIndex).reduce((n, p) => n + p.words.length, 0);
+  let at = -1;
+  part.words.forEach(([from], n) => { if (t >= from - 40) at = n; });
+  mark(at < 0 ? -1 : before + at);
+  frame = requestAnimationFrame(follow);
+}
+
+function failDua() {
+  stopDua();
+  $('duaNote').textContent = state.strings.duaOffline;
+  $('duaNote').hidden = false;
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(() => { $('duaNote').hidden = true; }, 6000);
+}
+
+$('duaPlay').addEventListener('click', () => {
+  if (!dua || !dua.parts) return;
+  $('duaNote').hidden = true;
+  if (partIndex >= 0 && !audio.paused) { audio.pause(); setPlaying(false); return; } // pause: the word stays lit
+  if (partIndex >= 0) { audio.play().then(() => setPlaying(true)).catch(() => failDua()); return; } // go on
+  startPart(0);
+});
+audio.addEventListener('ended', nextPart);
+audio.addEventListener('error', () => { if (partIndex >= 0) failDua(); });
+api.onPrayer(() => stopDua()); // the adhan comes first
 
 function render() {
   if (!state) return;

@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Mørkt glass",
   themeGlassLight: "Lyst glass",
   glassTransparency: "Gjennomsiktighet for glass",
+  duaOffline: "Resitasjonen trenger internett.",
 };

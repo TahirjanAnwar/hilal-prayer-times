@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Koyu cam",
   themeGlassLight: "Açık cam",
   glassTransparency: "Cam saydamlığı",
+  duaOffline: "Tilavet için internet bağlantısı gerekir.",
 };

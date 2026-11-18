@@ -172,7 +172,7 @@ function announce(id) {
     n.show();
   }
   const play = settings.adhanEnabled && settings.adhanFor[id] !== false;
-  if (win && !win.isDestroyed()) win.webContents.send('prayer:now', { id, play });
+  for (const target of [win, widget]) if (target && !target.isDestroyed()) target.webContents.send('prayer:now', { id, play });
 }
 
 // ---------- location ----------

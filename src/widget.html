@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src https://verses.quran.com; connect-src 'none'">
   <title>Hilal Prayer Times</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -24,12 +24,18 @@
         <div class="w-src" id="hadithSrc"></div>
       </div>
       <div class="w-block">
+        <button type="button" class="w-play" id="duaPlay" aria-label="Play">
+          <svg viewBox="0 0 24 24"><path class="i-play" d="M8 5.5v13l11-6.5z"/><path class="i-pause" d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg>
+        </button>
         <div class="w-dua-ar" id="duaAr" dir="rtl" lang="ar"></div>
+        <div class="w-dua-tr" id="duaTr" dir="ltr" lang="en"></div>
         <div class="w-dua" id="dua"></div>
         <div class="w-src" id="duaSrc"></div>
+        <div class="w-note" id="duaNote" hidden></div>
       </div>
     </div>
   </div>
+  <audio id="duaAudio" preload="none"></audio>
   <script src="hijri.js"></script>
   <script src="wisdom.js"></script>
   <script src="widget.js"></script>

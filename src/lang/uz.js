@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Qora shisha",
   themeGlassLight: "Oq shisha",
   glassTransparency: "Shisha shaffofligi",
+  duaOffline: "Tilovat uchun internet kerak.",
 };

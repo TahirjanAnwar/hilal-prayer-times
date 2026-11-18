@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "다크 글래스",
   themeGlassLight: "라이트 글래스",
   glassTransparency: "글래스 투명도",
+  duaOffline: "낭송을 들으려면 인터넷 연결이 필요합니다.",
 };

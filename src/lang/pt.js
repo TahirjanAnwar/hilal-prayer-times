@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Vidro escuro",
   themeGlassLight: "Vidro claro",
   glassTransparency: "Transparência do vidro",
+  duaOffline: "A recitação precisa de conexão com a internet.",
 };

@@ -182,4 +182,5 @@ module.exports = {
   themeGlassDark: "گہرا شیشہ",
   themeGlassLight: "ہلکا شیشہ",
   glassTransparency: "شیشے کی شفافیت",
+  duaOffline: "تلاوت کے لیے انٹرنیٹ درکار ہے۔",
 };

@@ -188,6 +188,7 @@ const en = {
   themeGlassDark: "Dark Glass",
   themeGlassLight: "Light Glass",
   glassTransparency: "Glass transparency",
+  duaOffline: "The recitation needs an internet connection.",
 };
 
 const nl = {
@@ -374,6 +375,7 @@ const nl = {
   themeGlassDark: "Donker glas",
   themeGlassLight: "Licht glas",
   glassTransparency: "Transparantie van het glas",
+  duaOffline: "Voor de recitatie is internet nodig.",
 };
 
 const ug = {
@@ -560,6 +562,7 @@ const ug = {
   themeGlassDark: "قارا ئەينەك",
   themeGlassLight: "ئاق ئەينەك",
   glassTransparency: "ئەينەكنىڭ سۈزۈكلۈكى",
+  duaOffline: "تىلاۋەت ئۈچۈن تور ئۇلىنىشى كېرەك.",
 };
 
 const LANGS = {

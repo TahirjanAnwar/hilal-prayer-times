@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Dunkles Glas",
   themeGlassLight: "Helles Glas",
   glassTransparency: "Transparenz des Glases",
+  duaOffline: "Für die Rezitation wird Internet benötigt.",
 };

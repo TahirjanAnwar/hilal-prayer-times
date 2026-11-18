@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Тёмное стекло",
   themeGlassLight: "Светлое стекло",
   glassTransparency: "Прозрачность стекла",
+  duaOffline: "Для чтения нужен интернет.",
 };

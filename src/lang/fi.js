@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Tumma lasi",
   themeGlassLight: "Vaalea lasi",
   glassTransparency: "Lasin läpinäkyvyys",
+  duaOffline: "Resitaatio tarvitsee internetyhteyden.",
 };

@@ -181,4 +181,5 @@ module.exports = {
   themeGlassDark: "Mörkt glas",
   themeGlassLight: "Ljust glas",
   glassTransparency: "Glasets genomskinlighet",
+  duaOffline: "Recitationen kräver internetanslutning.",
 };
