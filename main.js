@@ -460,6 +460,7 @@ function showWindow() {
   if (win.isMinimized()) win.restore();
   win.show();
   win.focus();
+  if (lastUpdateCheck && Date.now() - lastUpdateCheck > UPDATE_ON_OPEN_AFTER) checkUpdates();
 }
 
 function fmtTime(ms, tz) {
@@ -495,10 +496,14 @@ function createTray() {
 }
 
 // ---------- update check ----------
-// The app looks for a new version shortly after it starts and then every few hours. When
+// The app looks for a new version shortly after it starts, then every half hour, and also
+// when its window is opened (if the last look was more than ten minutes ago). An unchanged
+// repository costs one small request, so this stays far below GitHub's hourly limit. When
 // there is one, the main window comes up with a message and a short sound. "Later" keeps
 // that version quiet for a day.
-const UPDATE_EVERY = 3 * 3600000;
+const UPDATE_EVERY = 30 * 60000;
+const UPDATE_ON_OPEN_AFTER = 10 * 60000;
+let lastUpdateCheck = 0;
 const UPDATE_SNOOZE = 24 * 3600000;
 let updateTold = { commit: null, until: 0 };
 
@@ -517,6 +522,7 @@ function tellUpdate(info) {
 
 async function checkUpdates() {
   if (!settings.updateCheck) return;
+  lastUpdateCheck = Date.now();
   const r = await updater.check();
   if (r.status !== 'available' && r.status !== 'installer') return;
   if (updateTold.commit === r.commit && Date.now() < updateTold.until) return;

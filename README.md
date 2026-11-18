@@ -58,7 +58,7 @@ Settings → Updates → **Update** downloads the current app files from the `ma
 
 The updater replaces the top-level `*.js` files (except `boot.js`), `package.json`, `src/` and `assets/`. A change to `boot.js`, the npm dependencies, the Electron version or `build/keyblock.exe` needs a new installer: raise `"shell"` in package.json and `SHELL` in boot.js, and older installs will say so. If you fork the project, change `REPO` in `updater.js`.
 
-From version 1.7.0 the app also looks for a new version by itself, half a minute after it starts and then every three hours. When there is one, the main window comes up with a message and a short sound: **Update now** or **Later** (asks again after a day). On a child's computer the update needs the parent PIN. It can be switched off in Settings → Updates.
+From version 1.7.0 the app also looks for a new version by itself, half a minute after it starts, then every half hour, and when its window is opened. When there is one, the main window comes up with a message and a short sound: **Update now** or **Later** (asks again after a day). On a child's computer the update needs the parent PIN. It can be switched off in Settings → Updates.
 
 ## Colours and Ramadan counter
 
