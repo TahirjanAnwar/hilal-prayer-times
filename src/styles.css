@@ -115,6 +115,30 @@
 /* --glass-t is the transparency chosen in Settings (0 = solid panes, 1 = clear panes). */
 :root[data-theme^="glass"] { --pane: var(--pane-sheen), rgba(var(--pane-rgb), calc(1 - var(--glass-t, 0.6))); }
 :root[data-theme^="glass"] body:not(.widget) { background: var(--backdrop) fixed; }
+/* See-through window: no painted backdrop, only a tint whose strength follows the same
+   transparency setting, down to nothing at 100%. The header is the handle for moving the
+   window. The desktop behind the window is not blurred (Windows 10 cannot do that), so
+   every piece of text sits on a pane, and the panes keep part of their colour even at
+   100%: more in Light Glass, whose dark text needs a light surface. */
+:root.see-through[data-theme^="glass"] body:not(.widget) {
+  background: rgba(var(--pane-rgb), calc(1 - var(--glass-t, 0.6)));
+  border: 1px solid var(--pane-edge); border-radius: 16px;
+}
+:root.see-through[data-theme="glassDark"] { --pane-fade: 0.6; }
+:root.see-through[data-theme="glassLight"] { --pane-fade: 0.4; }
+:root.see-through[data-theme^="glass"] { --pane: var(--pane-sheen), rgba(var(--pane-rgb), calc(1 - var(--glass-t, 0.6) * var(--pane-fade))); }
+:root.see-through :is(.top, .hero, .foot, .row.minor, .chat-note, .welcome) {
+  background: var(--pane); border: 1px solid var(--pane-edge); border-radius: 14px;
+  box-shadow: inset 0 1px 0 var(--pane-hi), inset 0 -1px 0 var(--pane-lo), 0 8px 20px -6px var(--pane-shadow);
+}
+:root.see-through .top { -webkit-app-region: drag; margin: 8px 8px 10px; padding: 10px 12px; }
+:root.see-through .top :is(button, .win-btns) { -webkit-app-region: no-drag; }
+:root.see-through .hero { padding: 6px 0 8px; margin-bottom: 10px; }
+:root.see-through .foot { padding: 7px 10px; }
+:root.see-through .row.minor { padding-block: 3px; }
+:root.see-through .chat-note { padding: 4px 8px; margin-bottom: 6px; }
+:root.see-through .modal { border-radius: 16px; }
+:root.see-through .tabs { border-radius: 0 0 15px 15px; }
 :root[data-theme^="glass"] :is(.row:not(.minor), .card, .ramadan, .banner, .msg.assistant, .chips button, .results button) {
   background: var(--pane);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
@@ -166,6 +190,14 @@ button { cursor: pointer; }
   background: none; display: grid; place-items: center; padding: 0;
 }
 .theme-btn:hover { border-color: var(--accent); }
+.win-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.win-btns button {
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line);
+  background: var(--card); display: grid; place-items: center; padding: 0;
+}
+.win-btns button:hover { border-color: var(--accent); }
+.win-btns #winClose:hover { border-color: var(--danger); }
+.win-btns svg { width: 12px; height: 12px; fill: none; stroke: var(--text); stroke-width: 1.5; stroke-linecap: round; }
 .theme-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .theme-btn svg .fill { fill: var(--accent); stroke: none; }
 .theme-btn svg .dim { fill: var(--accent); fill-opacity: 0.35; }

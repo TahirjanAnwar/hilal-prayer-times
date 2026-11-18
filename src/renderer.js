@@ -133,6 +133,10 @@ function applyTheme() {
     else theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'day' : 'night';
   }
   if (document.documentElement.dataset.theme !== theme) document.documentElement.dataset.theme = theme;
+  // In a see-through window the desktop is the backdrop, and the page shows its own window buttons.
+  const seeThrough = !!state.seeThrough && theme.startsWith('glass');
+  document.documentElement.classList.toggle('see-through', seeThrough);
+  $('winBtns').hidden = !seeThrough;
   if (!glassDragging) setGlass(state.settings.glass);
   const btn = $('themeBtn');
   if (btn.dataset.mode !== mode + S.dir + state.settings.language) {
@@ -149,6 +153,9 @@ function setGlass(pct) {
 }
 $('glass').addEventListener('input', (e) => { glassDragging = true; setGlass(Number(e.target.value)); });
 $('glass').addEventListener('change', async (e) => { await save({ glass: Number(e.target.value) }); glassDragging = false; });
+
+$('winMin').addEventListener('click', () => api.winMin());
+$('winClose').addEventListener('click', () => api.winClose());
 
 $('themeBtn').addEventListener('click', () => {
   const next = THEME_CYCLE[(THEME_CYCLE.indexOf(state.settings.theme) + 1) % THEME_CYCLE.length];
@@ -863,6 +870,7 @@ api.onState(setState);
   const first = await api.getState();
   locating = !first.settings.location && first.settings.locationMode === 'auto';
   setState(first);
+  if (location.hash === '#settings') showView('settings'); // the window was replaced while Settings was open
   setTimeout(() => { locating = false; if (!times) renderTimes(); }, 15000);
   setInterval(() => { if (times) renderTimes(); }, 1000);
   setInterval(loadTimes, 60000); // picks up the new day after midnight

@@ -98,6 +98,7 @@ function publicState() {
       ? prayer.resolveMethod(settings.method, settings.location.countryCode) : null,
     qibla: settings.location ? prayer.qibla(settings.location) : null,
     version: updater.version(),
+    seeThrough: winGlass, // the main window is a see-through one
     family: family.view(),
   };
 }
@@ -305,14 +306,45 @@ function iconPath() {
   return path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png');
 }
 
-function createWindow() {
+// In the two glass looks the window itself is see-through: the desktop shows behind it.
+// A window can only be made see-through when it is created, and such a window has no
+// Windows title bar and cannot be resized, so the page draws its own minimise and close
+// buttons. Changing between a glass look and another look therefore replaces the window.
+const isGlass = () => settings.theme === 'glassDark' || settings.theme === 'glassLight';
+let winGlass = false;
+let swapping = false;
+
+async function syncWindowKind() {
+  if (!win || win.isDestroyed() || winGlass === isGlass() || adhanPlaying || swapping) return;
+  swapping = true;
+  try {
+    const old = win;
+    let view = 'times';
+    try { view = await old.webContents.executeJavaScript('currentView'); } catch { /* page not ready */ }
+    if (old.isDestroyed() || winGlass === isGlass()) return;
+    const bounds = old.getBounds();
+    const show = old.isVisible();
+    old.removeAllListeners('hide'); // not a real hide: the parent PIN stays accepted
+    old.destroy();
+    createWindow({ bounds, show, view: view === 'settings' ? view : null });
+  } finally {
+    swapping = false;
+  }
+}
+
+function createWindow(opts = {}) {
+  winGlass = isGlass();
+  const show = opts.show === undefined ? !START_HIDDEN : opts.show;
   win = new BrowserWindow({
     width: 440,
     height: 830,
     minWidth: 380,
     minHeight: 600,
+    ...(opts.bounds || {}),
     show: false,
-    backgroundColor: '#0f2238',
+    ...(winGlass
+      ? { frame: false, transparent: true, backgroundColor: '#00000000', resizable: false, maximizable: false, fullscreenable: false, hasShadow: false }
+      : { backgroundColor: '#0f2238' }),
     autoHideMenuBar: true,
     icon: iconPath(),
     title: 'Hilal Prayer Times',
@@ -323,13 +355,14 @@ function createWindow() {
       backgroundThrottling: false, // keep timers and audio running while hidden
     },
   });
-  win.setMenu(null);
-  win.loadFile(path.join(__dirname, 'src', 'index.html'));
-  win.once('ready-to-show', () => { if (!START_HIDDEN) win.show(); });
+  const w = win;
+  w.setMenu(null);
+  w.loadFile(path.join(__dirname, 'src', 'index.html'), opts.view ? { hash: opts.view } : undefined);
+  w.once('ready-to-show', () => { if (show && !w.isDestroyed()) w.show(); });
   win.on('hide', family.lockAdmin); // ask for the parent PIN again next time
   win.on('session-end', family.markCleanExit);
   win.on('close', (e) => {
-    if (!quitting) { e.preventDefault(); win.hide(); } // keep running in the tray
+    if (!quitting) { e.preventDefault(); w.hide(); } // keep running in the tray
   });
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https:\/\//.test(url)) shell.openExternal(url);
@@ -528,6 +561,7 @@ function registerIpc() {
     if ('widget' in p || 'widgetTop' in p) syncWidget();
     saveSettings();
     broadcast();
+    syncWindowKind();
     return publicState();
   });
 
@@ -563,7 +597,7 @@ function registerIpc() {
     if (!r.canceled && r.filePaths[0]) { settings.adhanFile = r.filePaths[0]; saveSettings(); broadcast(); }
     return publicState();
   });
-  ipcMain.on('adhan:state', (_e, playing) => { adhanPlaying = !!playing; refreshTray(); });
+  ipcMain.on('adhan:state', (_e, playing) => { adhanPlaying = !!playing; refreshTray(); if (!adhanPlaying) syncWindowKind(); });
 
   ipcMain.handle('ai:setKey', (_e, key) => { if (!family.guarded()) setApiKey(key); broadcast(); return publicState(); });
   ipcMain.handle('ai:send', aiSend);
@@ -581,6 +615,8 @@ function registerIpc() {
   ipcMain.on('family:testLock', () => family.testLock());
   ipcMain.on('family:quit', () => { if (!family.guarded()) { quitting = true; app.quit(); } });
   ipcMain.on('window:show', showWindow);
+  ipcMain.on('window:min', (e) => { if (win && !win.isDestroyed() && e.sender === win.webContents) win.minimize(); });
+  ipcMain.on('window:close', (e) => { if (win && !win.isDestroyed() && e.sender === win.webContents) win.close(); });
   ipcMain.on('widget:size', (e, h) => { if (widget && !widget.isDestroyed() && e.sender === widget.webContents) setWidgetHeight(h); });
   ipcMain.handle('update:run', async (e) => {
     if (family.guarded()) return { status: 'error', error: '' };

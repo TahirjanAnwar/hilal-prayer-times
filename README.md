@@ -62,7 +62,9 @@ From version 1.7.0 the app also looks for a new version by itself, half a minute
 
 ## Colours and Ramadan counter
 
-The round button at the top switches between Automatic (Day from sunrise until Maghrib, Night after it), Day, Night, Relaxed (warm, low-contrast colours), Dark Glass and Light Glass (frosted glass panes); Settings also offers "Same as the computer". Under the countdown the app shows the days until Ramadan, or the day of Ramadan and the days left. The Islamic dates are calculated (Umm al-Qura calendar) and can differ by a day from a local moon sighting; Settings → Calculation has a correction of up to two days.
+The round button at the top switches between Automatic (Day from sunrise until Maghrib, Night after it), Day, Night, Relaxed (warm, low-contrast colours), Dark Glass and Light Glass; Settings also offers "Same as the computer". Under the countdown the app shows the days until Ramadan, or the day of Ramadan and the days left. The Islamic dates are calculated (Umm al-Qura calendar) and can differ by a day from a local moon sighting; Settings → Calculation has a correction of up to two days.
+
+In the two glass looks the main window is see-through: the desktop shows behind it, and Settings → General → **Glass transparency** (0–100%) sets how much. That window has no system title bar (the header has its own minimise and close buttons and moves the window) and cannot be resized. The desktop behind it is not blurred.
 
 ## Family mode (child lock)
 
