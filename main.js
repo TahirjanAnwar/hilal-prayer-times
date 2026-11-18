@@ -335,11 +335,12 @@ function iconPath() {
   return path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png');
 }
 
-// In the two glass looks the window itself is see-through: the desktop shows behind it.
-// A window can only be made see-through when it is created, and such a window has no
-// Windows title bar and cannot be resized, so the page draws its own minimise and close
-// buttons. Changing between a glass look and another look therefore replaces the window.
-const isGlass = () => settings.theme === 'glassDark' || settings.theme === 'glassLight';
+// The window has rounded corners in every look. Windows 10 only allows that for a window
+// that is see-through and has no title bar, so the main window is always made that way:
+// the page draws its own minimise and close buttons (there is no maximise), the header
+// moves the window and it cannot be resized. In the two glass looks the desktop shows
+// through the panes; the other looks paint a solid, rounded background.
+const isGlass = () => true;
 let winGlass = false;
 let swapping = false;
 

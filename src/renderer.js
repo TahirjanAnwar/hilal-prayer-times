@@ -135,9 +135,12 @@ function applyTheme() {
   }
   if (document.documentElement.dataset.theme !== theme) document.documentElement.dataset.theme = theme;
   // In a see-through window the desktop is the backdrop, and the page shows its own window buttons.
-  const seeThrough = !!state.seeThrough && theme.startsWith('glass');
+  // The window never has a title bar (rounded corners): the page shows its own window buttons.
+  const frameless = !!state.seeThrough;
+  const seeThrough = frameless && theme.startsWith('glass');
+  document.documentElement.classList.toggle('frameless', frameless);
   document.documentElement.classList.toggle('see-through', seeThrough);
-  $('winBtns').hidden = !seeThrough;
+  $('winBtns').hidden = !frameless;
   if (!glassDragging) setGlass(state.settings.glass);
   const btn = $('themeBtn');
   if (btn.dataset.mode !== mode + S.dir + state.settings.language) {

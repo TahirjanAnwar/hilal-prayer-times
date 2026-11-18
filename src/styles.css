@@ -135,6 +135,16 @@
    window. The desktop behind the window is not blurred (Windows 10 cannot do that), so
    every piece of text sits on a pane, and the panes keep part of their colour even at
    100%: more in Light Glass, whose dark text needs a light surface. */
+/* Every look: a window without a title bar, with rounded corners. The page is the window:
+   the root stays clear (see below), the body is the rounded, painted shape, the header
+   moves the window. The glass looks add their see-through rules on top of this. */
+:root.frameless { --win-r: min(5vw, 24px); background: linear-gradient(transparent, transparent); }
+:root.frameless body:not(.widget) { border: 1px solid var(--line); border-radius: var(--win-r); }
+:root.frameless .top { -webkit-app-region: drag; }
+:root.frameless .top :is(button, .win-btns) { -webkit-app-region: no-drag; }
+:root.frameless .modal { border-radius: var(--win-r); }
+:root.frameless .tabs { border-radius: 0 0 calc(var(--win-r) - 1px) calc(var(--win-r) - 1px); overflow: hidden; }
+
 /* The window corners are rounded by a twentieth of the window's width, and the panes inside
    follow: the header and the tab bar run parallel to the corners, the other panes are
    rounded a little more than in the other looks. */
