@@ -441,6 +441,9 @@ body.widget { display: block; padding: 6px; -webkit-app-region: drag; cursor: de
 .w-text { flex: 1; min-width: 0; }
 .w-label { color: rgba(255, 255, 255, 0.76); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .w-name { font-size: 21px; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The name is cut to one line (overflow: hidden). Room below the line keeps dots under Arabic-script
+   letters from being cut off: without it the lowest dot of pe was lost and it read as ye. */
+.w-name { padding-bottom: 7px; margin-bottom: -7px; }
 .w-side { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
 .w-wx { display: flex; align-items: center; gap: 4px; font-size: 13px; color: rgba(255, 255, 255, 0.9); font-variant-numeric: tabular-nums; margin-top: -2px; }
 .w-wx svg { stroke: #ffd98a; width: 15px; height: 15px; }
