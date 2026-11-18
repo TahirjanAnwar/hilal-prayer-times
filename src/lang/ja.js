@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "ライトガラス",
   glassTransparency: "ガラスの透明度",
   duaOffline: "朗誦にはインターネット接続が必要です。",
+  everyNMinutes: "{n}分ごと",
+  weatherTemp: "天気と気温",
+  weatherOff: "表示しない",
 };

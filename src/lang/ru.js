@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "Светлое стекло",
   glassTransparency: "Прозрачность стекла",
   duaOffline: "Для чтения нужен интернет.",
+  everyNMinutes: "Каждые {n} мин.",
+  weatherTemp: "Погода и температура",
+  weatherOff: "Не показывать",
 };

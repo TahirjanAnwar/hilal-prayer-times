@@ -1,4 +1,4 @@
-/* global api, WISDOM, HIJRI */
+/* global api, WISDOM, HIJRI, WX */
 // Desktop widget: the next prayer with a countdown, and below it a hadith and a short dua
 // that change once a day (or as often as chosen in Settings).
 const $ = (id) => document.getElementById(id);
@@ -46,7 +46,7 @@ function renderWisdom() {
   const on = state.settings.widgetHadith;
   $('wisdom').hidden = !on;
   if (!on) { shownSlot = null; return; }
-  const period = (state.settings.hadithHours || 24) * 3600000;
+  const period = (state.settings.hadithMinutes || 1440) * 60000;
   const slot = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / period);
   const key = `${slot}|${state.settings.language}|${state.family.role}`;
   if (key === shownSlot) return;
@@ -178,6 +178,7 @@ api.onPrayer(() => stopDua()); // the adhan comes first
 function render() {
   if (!state) return;
   renderPrayer();
+  WX.show($('wx'), state.weather, state.settings.tempUnit, state.settings.location && state.settings.location.countryCode);
   renderRamadan();
   renderWisdom();
   // The window follows the height of the card, so longer texts are never cut off.
@@ -207,6 +208,6 @@ api.onState(setState);
   // language and the other settings can never stay out of step with the app.
   setInterval(async () => {
     const fresh = await api.getState();
-    if (JSON.stringify(fresh.settings) !== JSON.stringify(state.settings) || fresh.family.role !== state.family.role) setState(fresh);
+    if (JSON.stringify(fresh.settings) !== JSON.stringify(state.settings) || fresh.family.role !== state.family.role || JSON.stringify(fresh.weather) !== JSON.stringify(state.weather)) setState(fresh);
   }, 5000);
 })();

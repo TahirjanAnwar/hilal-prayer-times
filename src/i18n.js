@@ -189,6 +189,9 @@ const en = {
   themeGlassLight: "Light Glass",
   glassTransparency: "Glass transparency",
   duaOffline: "The recitation needs an internet connection.",
+  everyNMinutes: "Every {n} minutes",
+  weatherTemp: "Weather temperature",
+  weatherOff: "Don't show",
 };
 
 const nl = {
@@ -376,6 +379,9 @@ const nl = {
   themeGlassLight: "Licht glas",
   glassTransparency: "Transparantie van het glas",
   duaOffline: "Voor de recitatie is internet nodig.",
+  everyNMinutes: "Elke {n} minuten",
+  weatherTemp: "Weer en temperatuur",
+  weatherOff: "Niet tonen",
 };
 
 const ug = {
@@ -563,6 +569,9 @@ const ug = {
   themeGlassLight: "ئاق ئەينەك",
   glassTransparency: "ئەينەكنىڭ سۈزۈكلۈكى",
   duaOffline: "تىلاۋەت ئۈچۈن تور ئۇلىنىشى كېرەك.",
+  everyNMinutes: "ھەر {n} مىنۇتتا",
+  weatherTemp: "ھاۋا تېمپېراتۇرىسى",
+  weatherOff: "كۆرسەتمەسلىك",
 };
 
 const LANGS = {

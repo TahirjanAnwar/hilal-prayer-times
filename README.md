@@ -68,6 +68,10 @@ In the two glass looks the main window is see-through: the desktop shows behind 
 
 The dua on the widget has a play button: it plays the verse from Quran.com (recited by Mishari Rashid al-Afasy, streamed from verses.quran.com, so it needs internet) and lights up each word as it is recited, in the Arabic text and in a line that spells the dua in English letters. The word timings come from the Quran.com API and are stored in `src/wisdom.js`.
 
+## Weather
+
+Next to the city name, and on the widget, the app shows the temperature and a weather icon for the chosen place. The reading comes from [Open-Meteo](https://open-meteo.com) (no account needed) and is refreshed every 15 minutes; only the coordinates of the place, rounded to about a kilometre, are sent. Settings → General has the unit (Automatic, °C, °F) and can switch it off.
+
 ## Family mode (child lock)
 
 Set up in Settings → Family. One computer is the parent's, the others are children's; all use the same parent PIN and the same home network.

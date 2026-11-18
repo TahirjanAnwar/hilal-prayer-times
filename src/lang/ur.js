@@ -183,4 +183,7 @@ module.exports = {
   themeGlassLight: "ہلکا شیشہ",
   glassTransparency: "شیشے کی شفافیت",
   duaOffline: "تلاوت کے لیے انٹرنیٹ درکار ہے۔",
+  everyNMinutes: "ہر {n} منٹ بعد",
+  weatherTemp: "موسم کا درجۂ حرارت",
+  weatherOff: "نہ دکھائیں",
 };

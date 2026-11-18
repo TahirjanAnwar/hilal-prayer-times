@@ -10,6 +10,8 @@ const updater = require('./updater');
 
 const START_HIDDEN = process.argv.includes('--hidden');
 const ADHAN_IDS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha', 'juma'];
+const HADITH_MINUTES = [10, 30, 60, 180, 360, 720, 1440];
+const TEMP_UNITS = ['auto', 'c', 'f', 'off'];
 const THEMES = ['auto', 'system', 'day', 'night', 'relaxed', 'glassDark', 'glassLight'];
 
 // Let the adhan play without a click, even when the window is hidden.
@@ -46,7 +48,9 @@ const DEFAULTS = {
   widgetTop: false, // keep the widget above other windows
   widgetPos: null, // { x, y } after the user dragged it
   widgetHadith: true, // show a hadith and a dua on the widget
-  hadithHours: 24, // how often they change: 1, 3, 6, 12 or 24 hours
+  hadithHours: 24, // (older versions) how often they change, in hours
+  hadithMinutes: null, // how often they change: 10, 30, 60, 180, 360, 720 or 1440 minutes
+  tempUnit: 'auto', // the weather: 'auto' (Fahrenheit where that is usual, else Celsius) | 'c' | 'f' | 'off'
   theme: 'auto', // 'auto' (day after sunrise, night after Maghrib) | 'system' | 'day' | 'night' | 'relaxed' | 'glassDark' | 'glassLight'
   glass: 60, // how see-through the panes of the two glass looks are, 0 (solid) to 100 (clear)
   hijriAdjust: 0, // days to shift the calculated Islamic date, -2..2, to match the local moon sighting
@@ -64,6 +68,7 @@ function loadSettings() {
   } catch {
     settings = { ...DEFAULTS };
   }
+  if (!HADITH_MINUTES.includes(settings.hadithMinutes)) settings.hadithMinutes = HADITH_MINUTES.includes(settings.hadithHours * 60) ? settings.hadithHours * 60 : 1440;
   if (!i18n.LANG_CODES.includes(settings.language)) {
     const sys = (app.getLocale() || 'en').toLowerCase();
     const code = sys.split('-')[0];
@@ -99,6 +104,7 @@ function publicState() {
     qibla: settings.location ? prayer.qibla(settings.location) : null,
     version: updater.version(),
     seeThrough: winGlass, // the main window is a see-through one
+    weather: settings.tempUnit !== 'off' && weather && weather.place === placeKey() ? { c: weather.c, code: weather.code, day: weather.day } : null,
     family: family.view(),
   };
 }
@@ -208,12 +214,35 @@ async function detectLocation() {
   return null;
 }
 
+// ---------- weather ----------
+// The temperature and the kind of weather right now at the chosen place, from Open-Meteo
+// (free, no account). Only the place's coordinates, rounded to about a kilometre, are sent.
+let weather = null; // { c, code, day, at, place }
+const placeKey = () => (settings.location ? `${settings.location.lat.toFixed(2)},${settings.location.lon.toFixed(2)}` : '');
+
+async function refreshWeather() {
+  const place = placeKey();
+  if (!place || settings.tempUnit === 'off') return;
+  try {
+    const [lat, lon] = place.split(',');
+    const j = await getJson(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day`);
+    const c = j && j.current;
+    if (!c || !Number.isFinite(c.temperature_2m)) throw new Error('no data');
+    weather = { c: c.temperature_2m, code: Number(c.weather_code) || 0, day: c.is_day !== 0, at: Date.now(), place };
+  } catch {
+    // keep the last reading for a while; an old temperature is worse than none
+    if (weather && Date.now() - weather.at > 60 * 60000) weather = null;
+  }
+  broadcast();
+}
+
 async function refreshAutoLocation() {
   const loc = await detectLocation();
   if (loc && settings.locationMode === 'auto') {
     settings.location = loc;
     saveSettings();
     broadcast();
+    refreshWeather();
   }
   return !!loc;
 }
@@ -559,7 +588,8 @@ function registerIpc() {
     if (typeof p.widget === 'boolean') settings.widget = p.widget;
     if (typeof p.widgetTop === 'boolean') settings.widgetTop = p.widgetTop;
     if (typeof p.widgetHadith === 'boolean') settings.widgetHadith = p.widgetHadith;
-    if ([1, 3, 6, 12, 24].includes(p.hadithHours)) settings.hadithHours = p.hadithHours;
+    if (HADITH_MINUTES.includes(p.hadithMinutes)) settings.hadithMinutes = p.hadithMinutes;
+    if (TEMP_UNITS.includes(p.tempUnit)) { const was = settings.tempUnit; settings.tempUnit = p.tempUnit; if (was === 'off' && p.tempUnit !== 'off') refreshWeather(); }
     if (THEMES.includes(p.theme)) settings.theme = p.theme;
     if (Number.isFinite(p.glass)) settings.glass = Math.round(Math.min(100, Math.max(0, p.glass)));
     if (Number.isInteger(p.hijriAdjust) && Math.abs(p.hijriAdjust) <= 2) settings.hijriAdjust = p.hijriAdjust;
@@ -591,6 +621,7 @@ function registerIpc() {
     };
     saveSettings();
     broadcast();
+    refreshWeather();
     return true;
   });
 
@@ -677,6 +708,8 @@ app.whenReady().then(async () => {
   screen.on('display-removed', () => { if (widget && !widget.isDestroyed()) { const p = widgetPosition(); widget.setPosition(p.x, p.y); } });
   setInterval(tick, 1000);
   setInterval(refreshTray, 60000);
+  refreshWeather();
+  setInterval(refreshWeather, 15 * 60000);
   if (settings.locationMode === 'auto') refreshAutoLocation();
   setTimeout(updater.cleanup, 5000); // the app started fine: keep this version, remove older downloads
   setTimeout(checkUpdates, 30000);

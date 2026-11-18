@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "Kaca terang",
   glassTransparency: "Transparansi kaca",
   duaOffline: "Bacaan memerlukan koneksi internet.",
+  everyNMinutes: "Setiap {n} menit",
+  weatherTemp: "Suhu cuaca",
+  weatherOff: "Jangan tampilkan",
 };

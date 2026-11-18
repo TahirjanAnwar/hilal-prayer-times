@@ -221,6 +221,10 @@ button { cursor: pointer; }
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .loc-btn:hover { color: var(--accent); }
+.loc-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.loc-row .loc-btn { flex: 0 1 auto; min-width: 0; }
+.wx { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-variant-numeric: tabular-nums; font-size: 14px; }
+.wx svg, .w-wx svg { width: 17px; height: 17px; fill: none; stroke: var(--sun); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
 .banner {
   margin: 0 18px 8px; padding: 10px 14px; border-radius: 12px;
@@ -309,7 +313,19 @@ select, input[type="text"], input[type="password"], input[type="time"], input[ty
   outline: none; user-select: text;
 }
 select:focus, input:focus, textarea:focus { border-color: var(--accent); }
-select option { background: var(--bg2); color: var(--text); }
+/* Drop-down lists are drawn by the page (not by Windows), so that the box and its open
+   list get the same rounded corners as the cards. */
+select, ::picker(select) { appearance: base-select; }
+select { border-radius: 14px; padding: 7px 12px; cursor: pointer; gap: 8px; }
+select::picker-icon { color: var(--muted); font-size: 0.8em; }
+::picker(select) {
+  margin: 4px 0; padding: 5px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--bg2); color: var(--text); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+select option { background: none; color: var(--text); padding: 6px 12px; border-radius: 10px; cursor: pointer; }
+select option:hover, select option:focus-visible { background: var(--card-strong); outline: none; }
+select option:checked { background: var(--accent); color: var(--accent-ink); }
+select option::checkmark { display: none; }
 input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
 input[type="range"] { accent-color: var(--accent); width: 150px; }
 #language { width: 100%; }
@@ -414,6 +430,9 @@ body.widget { display: block; padding: 6px; -webkit-app-region: drag; cursor: de
 .w-text { flex: 1; min-width: 0; }
 .w-label { color: rgba(255, 255, 255, 0.76); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .w-name { font-size: 21px; font-weight: 600; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-side { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.w-wx { display: flex; align-items: center; gap: 4px; font-size: 13px; color: rgba(255, 255, 255, 0.9); font-variant-numeric: tabular-nums; margin-top: -2px; }
+.w-wx svg { stroke: #ffd98a; width: 15px; height: 15px; }
 .w-count { font-size: 28px; font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
 .w-ram { padding: 7px 18px 8px; border-top: 1px solid rgba(255, 255, 255, 0.16); font-size: 12.5px; text-align: center; color: rgba(255, 255, 255, 0.9); font-variant-numeric: tabular-nums; }
 .w-block { padding: 12px 18px 13px; border-top: 1px solid rgba(255, 255, 255, 0.16); }

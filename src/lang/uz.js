@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "Oq shisha",
   glassTransparency: "Shisha shaffofligi",
   duaOffline: "Tilovat uchun internet kerak.",
+  everyNMinutes: "Har {n} daqiqada",
+  weatherTemp: "Ob-havo harorati",
+  weatherOff: "Ko'rsatilmasin",
 };

@@ -12,7 +12,10 @@
     <img class="logo" src="../assets/logo.svg" alt="">
     <div class="top-text">
       <div class="app-name" data-i18n="appName"></div>
-      <button class="loc-btn" id="locBtn" type="button"><span id="locLabel"></span></button>
+      <div class="loc-row">
+        <button class="loc-btn" id="locBtn" type="button"><span id="locLabel"></span></button>
+        <span class="wx" id="wx" hidden></span>
+      </div>
     </div>
     <button class="theme-btn" id="themeBtn" type="button"></button>
     <div class="win-btns" id="winBtns" hidden>
@@ -154,6 +157,14 @@
           <span><span data-i18n="glassTransparency"></span> <span class="muted" id="glassPct" dir="ltr"></span></span>
           <input type="range" id="glass" min="0" max="100" step="5">
         </label>
+        <label class="line"><span data-i18n="weatherTemp"></span>
+          <select id="tempUnit">
+            <option value="auto" data-i18n="auto"></option>
+            <option value="c">°C</option>
+            <option value="f">°F</option>
+            <option value="off" data-i18n="weatherOff"></option>
+          </select>
+        </label>
         <label class="line"><span data-i18n="startup"></span><input type="checkbox" id="startup"></label>
         <label class="line"><span data-i18n="widgetShow"></span><input type="checkbox" id="widget"></label>
         <label class="line"><span data-i18n="widgetTop"></span><input type="checkbox" id="widgetTop"></label>
@@ -286,6 +297,7 @@
 
   <audio id="adhan" preload="none"></audio>
   <script src="hijri.js"></script>
+  <script src="weather.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

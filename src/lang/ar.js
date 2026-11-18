@@ -183,4 +183,7 @@ module.exports = {
   themeGlassLight: "زجاج فاتح",
   glassTransparency: "شفافية الزجاج",
   duaOffline: "التلاوة تحتاج إلى اتصال بالإنترنت.",
+  everyNMinutes: "كل {n} دقيقة",
+  weatherTemp: "درجة حرارة الطقس",
+  weatherOff: "عدم العرض",
 };

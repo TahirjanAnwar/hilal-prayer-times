@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "Verre clair",
   glassTransparency: "Transparence du verre",
   duaOffline: "La récitation nécessite une connexion Internet.",
+  everyNMinutes: "Toutes les {n} minutes",
+  weatherTemp: "Météo et température",
+  weatherOff: "Ne pas afficher",
 };

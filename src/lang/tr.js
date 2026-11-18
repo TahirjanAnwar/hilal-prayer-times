@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "Açık cam",
   glassTransparency: "Cam saydamlığı",
   duaOffline: "Tilavet için internet bağlantısı gerekir.",
+  everyNMinutes: "Her {n} dakikada bir",
+  weatherTemp: "Hava sıcaklığı",
+  weatherOff: "Gösterme",
 };

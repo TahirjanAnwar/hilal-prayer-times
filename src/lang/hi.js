@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "लाइट ग्लास",
   glassTransparency: "ग्लास की पारदर्शिता",
   duaOffline: "तिलावत के लिए इंटरनेट चाहिए।",
+  everyNMinutes: "हर {n} मिनट में",
+  weatherTemp: "मौसम का तापमान",
+  weatherOff: "न दिखाएँ",
 };

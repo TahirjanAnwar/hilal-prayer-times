@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "Ljust glas",
   glassTransparency: "Glasets genomskinlighet",
   duaOffline: "Recitationen kräver internetanslutning.",
+  everyNMinutes: "Var {n}:e minut",
+  weatherTemp: "Väder och temperatur",
+  weatherOff: "Visa inte",
 };

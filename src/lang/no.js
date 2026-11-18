@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "Lyst glass",
   glassTransparency: "Gjennomsiktighet for glass",
   duaOffline: "Resitasjonen trenger internett.",
+  everyNMinutes: "Hvert {n}. minutt",
+  weatherTemp: "Vær og temperatur",
+  weatherOff: "Ikke vis",
 };

@@ -182,4 +182,7 @@ module.exports = {
   themeGlassLight: "Vaalea lasi",
   glassTransparency: "Lasin läpinäkyvyys",
   duaOffline: "Resitaatio tarvitsee internetyhteyden.",
+  everyNMinutes: "{n} minuutin välein",
+  weatherTemp: "Sää ja lämpötila",
+  weatherOff: "Älä näytä",
 };
