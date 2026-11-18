@@ -24,10 +24,14 @@
         <div class="w-src" id="hadithSrc"></div>
       </div>
       <div class="w-block">
-        <button type="button" class="w-play" id="duaPlay" aria-label="Play">
-          <svg viewBox="0 0 24 24"><path class="i-play" d="M8 5.5v13l11-6.5z"/><path class="i-pause" d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg>
-        </button>
-        <div class="w-dua-ar" id="duaAr" dir="rtl" lang="ar"></div>
+        <!-- The button sits in the normal flow of the row: a button placed with
+             position:absolute stays part of the window's drag area and cannot be clicked. -->
+        <div class="w-dua-row">
+          <button type="button" class="w-play" id="duaPlay" aria-label="Play">
+            <svg viewBox="0 0 24 24"><path class="i-play" d="M8 5.5v13l11-6.5z"/><path class="i-pause" d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg>
+          </button>
+          <div class="w-dua-ar" id="duaAr" dir="rtl" lang="ar"></div>
+        </div>
         <div class="w-dua-tr" id="duaTr" dir="ltr" lang="en"></div>
         <div class="w-dua" id="dua"></div>
         <div class="w-src" id="duaSrc"></div>
