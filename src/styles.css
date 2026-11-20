@@ -520,3 +520,80 @@ body.widget { display: block; padding: 6px; -webkit-app-region: drag; cursor: de
 .w-dua { font-size: 12.5px; line-height: 1.45; text-align: center; color: rgba(255, 255, 255, 0.86); margin-top: 2px; }
 .w-src { margin-top: 5px; font-size: 11px; color: rgba(255, 255, 255, 0.62); text-align: end; }
 .w-block:last-child .w-src { text-align: center; }
+
+/* ---------- Quran ---------- */
+.quran-card {
+  display: flex; align-items: center; justify-content: center; gap: 9px; width: 100%;
+  margin-top: 12px; padding: 11px 14px; border-radius: 14px; color: inherit;
+  background: var(--card); border: 1px solid var(--line); font-size: 14.5px; font-weight: 600;
+}
+.quran-card:hover { border-color: var(--accent); }
+.quran-card svg { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--accent); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.quran-card span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#qContinue { margin: 4px 0 10px; }
+.q-list { display: flex; flex-direction: column; gap: 6px; }
+.q-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; text-align: start; color: inherit;
+  background: var(--card); border: 1px solid transparent; border-radius: 12px;
+}
+.q-row:hover { border-color: var(--accent); }
+.q-num {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--card-strong); color: var(--accent); font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.q-names { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.q-name { font-weight: 600; }
+.q-count { color: var(--muted); font-size: 12.5px; }
+.q-arabic, .q-title-ar { font-family: "Hilal Uyghur", "Segoe UI", "Geeza Pro", sans-serif; font-size: 19px; }
+.q-title-ar { margin-inline-start: auto; }
+[dir="rtl"] #qBack svg { transform: scaleX(-1); }
+.q-source { margin: 12px 2px 0; text-align: center; }
+
+#view-quran.reading { display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.q-reader { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.q-head { display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.q-title { flex: 0 1 auto; direction: ltr; min-width: 0; font-weight: 600; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.q-body { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 2px 10px; margin-inline-end: -10px; padding-inline-end: 10px; }
+.q-body::-webkit-scrollbar { width: 8px; }
+.q-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+.q-msg { text-align: center; color: var(--muted); margin: 28px 0 14px; }
+.q-body > .primary { display: block; margin: 0 auto; }
+.q-bismillah { text-align: center; font-family: "Hilal Uyghur", "Segoe UI", "Geeza Pro", sans-serif; font-size: 23px; line-height: 2; color: var(--muted); }
+.q-verse { padding: 8px 12px 10px; border-radius: 12px; border: 1px solid transparent; cursor: pointer; }
+.q-verse + .q-verse { margin-top: 2px; }
+.q-verse:hover { background: var(--card); }
+.q-verse.on { background: var(--card); border-color: var(--line); }
+.q-ar { font-family: "Hilal Uyghur", "Segoe UI", "Geeza Pro", sans-serif; font-size: 26px; line-height: 2.05; text-align: right; }
+.q-w { border-radius: 6px; padding: 2px 3px; margin: 0 -1px; transition: color 0.12s, background 0.12s; }
+.q-w:hover { background: var(--card-strong); }
+.q-w.on { color: var(--accent); background: var(--card-strong); }
+.q-end {
+  display: inline-grid; place-items: center; min-width: 30px; height: 30px; padding: 0 5px; margin-inline-start: 4px; vertical-align: middle;
+  border: 1.5px solid var(--accent); border-radius: 50%; color: var(--accent); font-size: 14px; line-height: 1; font-family: "Hilal Uyghur", "Segoe UI", sans-serif;
+}
+.q-tr { margin-top: 2px; color: var(--muted); font-size: 14px; line-height: 1.55; text-align: start; }
+.q-verse.on .q-tr { color: var(--text); }
+.q-tr-n { font-variant-numeric: tabular-nums; }
+.q-note { text-align: center; color: var(--danger); font-size: 13px; padding: 4px 0; }
+.q-bar { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 9px 0 10px; border-top: 1px solid var(--line); }
+.q-btn {
+  flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: inherit;
+  background: var(--card); border: 1px solid var(--line);
+}
+.q-btn:hover, .q-pill:hover { border-color: var(--accent); }
+.q-btn svg, .q-pill svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.q-play { width: 48px; height: 48px; background: var(--accent); color: var(--accent-ink); border: 0; }
+.q-play svg { width: 22px; height: 22px; }
+.q-play .i-play { fill: currentColor; }
+.q-play .i-pause { stroke-width: 2.6; }
+.q-play .i-pause, .q-play.playing .i-play { display: none; }
+.q-play.playing .i-pause { display: block; }
+.q-pill {
+  flex: none; min-width: 48px; height: 32px; padding: 0 9px; border-radius: 999px; display: grid; place-items: center; color: var(--muted);
+  background: var(--card); border: 1px solid var(--line); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.q-pill.changed { color: var(--accent); border-color: var(--accent); }
+:root.see-through :is(.quran-card, .q-row, .q-verse.on) { border-radius: var(--pane-r); }
+:root.see-through :is(.q-head, .q-bar) {
+  background: var(--pane); border: 1px solid var(--pane-edge); border-radius: var(--pane-r); padding: 7px 10px; margin-bottom: 6px;
+}

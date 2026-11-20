@@ -100,6 +100,12 @@ Fajr always plays `assets/fajr.mp3`. The other prayers play one of `assets/adhan
 
 The source code is under the MIT license (see LICENSE). The adhan recordings in `assets/*.mp3` are not covered by it.
 
+## Quran
+
+The Quran tab lists the 114 surahs. Opening one shows the Arabic text with a translation in the app's language under each verse, and plays the recitation of Mishari Rashid al-Afasy while each word lights up as it is recited. Click a word or a verse to recite from there; the bar at the bottom has previous and next verse, a speed button (0.5× to 1.25×) and a button that repeats the current verse. The app remembers where you stopped and offers to continue from the Prayer times page.
+
+The text, the translations and the word timings come from [Quran.com](https://quran.com) and are kept on the computer after a surah has been read once; the audio is streamed, so listening needs an internet connection.
+
 ## Islamic days
 
 Clicking the Ramadan line under the countdown opens a list of the coming days of the Islamic year with the days left and the date. The dates are calculated with the Umm al-Qura calendar (see `src/hijri.js`) and follow the Hijri date adjustment in Settings; the real day depends on the moon sighting and can differ by a day.

@@ -560,8 +560,59 @@ async function checkUpdates() {
   tellUpdate({ status: r.status, version: r.version });
 }
 
+// ---------- Quran ----------
+// The text (word by word), one published translation per app language and the reciter's
+// word timings come from Quran.com. A surah is fetched once and then kept on this computer.
+const QURAN_API = 'https://api.quran.com/api/v4';
+const QURAN_AUDIO_HOST = 'https://download.quranicaudio.com/';
+const QURAN_RECITER = 7; // Mishari Rashid al-Afasy
+const QURAN_TR = { en: 20, nl: 144, ug: 76, tr: 77, de: 27, no: 41, fr: 31, ja: 35, ur: 234, hi: 122, id: 33, ru: 45, uz: 55, es: 83, it: 153, pt: 43, ko: 36, fi: 30, sv: 48 };
+const quranPlain = (html) => String(html || '')
+  .replace(/<sup[^>]*>.*?<\/sup>/g, '').replace(/<[^>]+>/g, '')
+  .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+  .replace(/\s+/g, ' ').trim();
+async function quranJson(url) {
+  const res = await fetch(url, { signal: AbortSignal.timeout(20000), headers: { 'User-Agent': 'PrayerTimesApp/1.0' } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+async function quranChapter(n, lang) {
+  n = Math.round(Number(n));
+  if (!(n >= 1 && n <= 114)) throw new Error('surah');
+  const tr = QURAN_TR[lang] || 0; // Arabic: the text alone
+  const dir = path.join(app.getPath('userData'), 'quran');
+  const file = path.join(dir, `s${n}-t${tr}-r${QURAN_RECITER}.json`);
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { /* not read before */ }
+  const verses = [];
+  for (let page = 1; page;) {
+    const j = await quranJson(`${QURAN_API}/verses/by_chapter/${n}?words=true&word_fields=text_uthmani&per_page=50&page=${page}${tr ? `&translations=${tr}` : ''}`);
+    for (const v of j.verses) {
+      verses.push({
+        n: v.verse_number,
+        w: v.words.filter((w) => w.char_type_name === 'word').map((w) => w.text_uthmani),
+        t: tr ? quranPlain(v.translations && v.translations[0] && v.translations[0].text) : '',
+      });
+    }
+    page = j.pagination && j.pagination.next_page;
+  }
+  const a = (await quranJson(`${QURAN_API}/chapter_recitations/${QURAN_RECITER}/${n}?segments=true`)).audio_file;
+  if (!a || !String(a.audio_url).startsWith(QURAN_AUDIO_HOST)) throw new Error('audio');
+  const times = {};
+  for (const ts of a.timestamps || []) {
+    const verse = Number(String(ts.verse_key).split(':')[1]);
+    const seg = (ts.segments || []).filter((s) => s.length === 3 && s.every(Number.isFinite)).sort((x, y) => x[1] - y[1]);
+    times[verse] = { from: ts.timestamp_from, to: ts.timestamp_to, seg };
+  }
+  const data = { verses, times, audio: a.audio_url };
+  if (verses.length) {
+    try { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(file, JSON.stringify(data)); } catch { /* read again next time */ }
+  }
+  return data;
+}
+
 // ---------- IPC ----------
 function registerIpc() {
+  ipcMain.handle('quran:chapter', (_e, { n, lang } = {}) => quranChapter(n, lang));
   ipcMain.handle('state:get', () => publicState());
   ipcMain.handle('times:get', () => {
     const plan = dayPlan();

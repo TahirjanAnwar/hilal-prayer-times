@@ -899,7 +899,8 @@ async function showView(name, force) {
   if (!force && name === 'settings' && f.role === 'child' && !(await askPin(t('gateChild')))) return;
   if (!force && name === 'family' && f.role === 'parent' && !(await askPin(t('gateParent')))) return;
   currentView = name;
-  for (const v of ['times', 'ai', 'family', 'settings']) $(`view-${v}`).hidden = v !== name;
+  for (const v of ['times', 'quran', 'ai', 'family', 'settings']) $(`view-${v}`).hidden = v !== name;
+  quranOnView(name);
   document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.view === name));
   if (name === 'ai') input.focus();
 }
@@ -916,6 +917,7 @@ function setState(next) {
   syncAdhanUi();
   applyTheme();
   loadTimes();
+  quranOnState();
 }
 api.onState(setState);
 

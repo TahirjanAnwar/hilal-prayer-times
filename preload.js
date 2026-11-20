@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld('api', {
   familyQuit: () => ipcRenderer.send('family:quit'),
   lockInfo: () => ipcRenderer.invoke('lock:info'),
   lockPin: (pin) => ipcRenderer.invoke('lock:pin', pin),
+  quranChapter: (n, lang) => ipcRenderer.invoke('quran:chapter', { n, lang }),
   updateRun: () => ipcRenderer.invoke('update:run'),
   updatePage: () => ipcRenderer.send('update:page'),
   onUpdateProgress: on('update:progress'),

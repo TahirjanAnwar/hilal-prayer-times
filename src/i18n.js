@@ -205,6 +205,20 @@ const en = {
   daysNote: "These dates are calculated. The real day depends on the moon sighting and can differ by a day.",
   close: "Close",
   themeEmerald: "Emerald",
+  tabQuran: "Quran",
+  quranRead: "Read the Quran",
+  quranContinue: "Continue: {s} {v}",
+  quranVerses: "{n} verses",
+  quranLoading: "Loading…",
+  quranNeedsNet: "This needs an internet connection.",
+  quranRetry: "Try again",
+  quranRepeat: "Repeat this verse",
+  quranBack: "All surahs",
+  quranSource: "Text, translations and word timings: Quran.com. Recitation: Mishari Rashid al-Afasy.",
+  quranPrev: "Previous verse",
+  quranNext: "Next verse",
+  quranPlay: "Play",
+  quranPause: "Pause",
 };
 
 const nl = {
@@ -408,6 +422,20 @@ const nl = {
   daysNote: "Deze data zijn berekend. De echte dag hangt af van de maanwaarneming en kan een dag verschillen.",
   close: "Sluiten",
   themeEmerald: "Smaragd",
+  tabQuran: "Koran",
+  quranRead: "Lees de Koran",
+  quranContinue: "Verder: {s} {v}",
+  quranVerses: "{n} verzen",
+  quranLoading: "Laden…",
+  quranNeedsNet: "Hiervoor is een internetverbinding nodig.",
+  quranRetry: "Opnieuw proberen",
+  quranRepeat: "Dit vers herhalen",
+  quranBack: "Alle soera’s",
+  quranSource: "Tekst, vertalingen en woordtijden: Quran.com. Recitatie: Mishari Rashid al-Afasy.",
+  quranPrev: "Vorig vers",
+  quranNext: "Volgend vers",
+  quranPlay: "Afspelen",
+  quranPause: "Pauzeren",
 };
 
 const ug = {
@@ -611,6 +639,20 @@ const ug = {
   daysNote: "بۇ چېسلالار ھېسابلاپ چىقىرىلغان. ھەقىقىي كۈن ئاي كۆرۈشكە باغلىق بولۇپ، بىر كۈن پەرقلىنىشى مۇمكىن.",
   close: "تاقاش",
   themeEmerald: "زۇمرەت",
+  tabQuran: "قۇرئان",
+  quranRead: "قۇرئان ئوقۇش",
+  quranContinue: "داۋاملاشتۇرۇش: {s} {v}",
+  quranVerses: "{n} ئايەت",
+  quranLoading: "يۈكلىنىۋاتىدۇ…",
+  quranNeedsNet: "بۇنىڭغا ئىنتېرنېت ئۇلىنىشى كېرەك.",
+  quranRetry: "قايتا سىناش",
+  quranRepeat: "بۇ ئايەتنى تەكرارلاش",
+  quranBack: "بارلىق سۈرىلەر",
+  quranSource: "تېكىست، تەرجىمە ۋە سۆز ۋاقىتلىرى: Quran.com. قىرائەت: مىشارى راشىد ئەلئەفاسى.",
+  quranPrev: "ئالدىنقى ئايەت",
+  quranNext: "كېيىنكى ئايەت",
+  quranPlay: "قويۇش",
+  quranPause: "توختىتىش",
 };
 
 const LANGS = {
